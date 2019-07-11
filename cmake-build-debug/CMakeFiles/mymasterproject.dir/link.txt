@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++11 -g  -rdynamic CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o CMakeFiles/mymasterproject.dir/static_model.c.o  -o mymasterproject -liec61850 -pthread 

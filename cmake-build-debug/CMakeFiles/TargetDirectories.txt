@@ -1,0 +1,3 @@
+/home/d/mymasterproject/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/d/mymasterproject/cmake-build-debug/CMakeFiles/mymasterproject.dir
+/home/d/mymasterproject/cmake-build-debug/CMakeFiles/edit_cache.dir
