@@ -11,7 +11,7 @@ static void initializeValues();
 
 extern DataSet iedModelds_CTRL_LLN0_Status;
 extern DataSet iedModelds_PROT_LLN0_Alarm;
-extern DataSet iedModelds_MEAS_LLN0_Meas;
+extern DataSet iedModelds_MEAS_LLN0_Meas; 
 
 
 extern DataSetEntry iedModelds_CTRL_LLN0_Status_fcda0;
