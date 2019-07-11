@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o"
+  "CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o"
   "CMakeFiles/server_example_goose.dir/static_model.c.o"
   "server_example_goose.pdb"
   "server_example_goose"

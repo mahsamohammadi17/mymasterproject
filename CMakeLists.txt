@@ -3,7 +3,7 @@ include_directories(
 )
 
 set(server_example_goose_SRCS
-        server_example_goose.cpp
+        mymasterproject.cpp
         static_model.c
 )
 

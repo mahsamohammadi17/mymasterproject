@@ -5,7 +5,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/var/www/html/server_example_goose/static_model.c" "/var/www/html/server_example_goose/cmake-build-debug/CMakeFiles/server_example_goose.dir/static_model.c.o"
+  "/home/d/mymasterproject/static_model.c" "/home/d/mymasterproject/cmake-build-debug/CMakeFiles/server_example_goose.dir/static_model.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
@@ -14,7 +14,7 @@ set(CMAKE_C_TARGET_INCLUDE_PATH
   "../."
   )
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/var/www/html/server_example_goose/server_example_goose.cpp" "/var/www/html/server_example_goose/cmake-build-debug/CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o"
+  "/home/d/mymasterproject/mymasterproject.cpp" "/home/d/mymasterproject/cmake-build-debug/CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

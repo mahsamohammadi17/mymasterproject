@@ -43,10 +43,10 @@ RM = /home/d/clion-2019.1.4/bin/cmake/linux/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /var/www/html/server_example_goose
+CMAKE_SOURCE_DIR = /home/d/mymasterproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /var/www/html/server_example_goose/cmake-build-debug
+CMAKE_BINARY_DIR = /home/d/mymasterproject/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/server_example_goose.dir/depend.make
@@ -57,45 +57,45 @@ include CMakeFiles/server_example_goose.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/server_example_goose.dir/flags.make
 
-CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o: CMakeFiles/server_example_goose.dir/flags.make
-CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o: ../server_example_goose.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/var/www/html/server_example_goose/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o -c /var/www/html/server_example_goose/server_example_goose.cpp
+CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o: CMakeFiles/server_example_goose.dir/flags.make
+CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o: ../mymasterproject.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/d/mymasterproject/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o -c /home/d/mymasterproject/mymasterproject.cpp
 
-CMakeFiles/server_example_goose.dir/server_example_goose.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/server_example_goose.dir/server_example_goose.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /var/www/html/server_example_goose/server_example_goose.cpp > CMakeFiles/server_example_goose.dir/server_example_goose.cpp.i
+CMakeFiles/server_example_goose.dir/mymasterproject.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/server_example_goose.dir/mymasterproject.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/d/mymasterproject/mymasterproject.cpp > CMakeFiles/server_example_goose.dir/mymasterproject.cpp.i
 
-CMakeFiles/server_example_goose.dir/server_example_goose.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/server_example_goose.dir/server_example_goose.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /var/www/html/server_example_goose/server_example_goose.cpp -o CMakeFiles/server_example_goose.dir/server_example_goose.cpp.s
+CMakeFiles/server_example_goose.dir/mymasterproject.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/server_example_goose.dir/mymasterproject.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/d/mymasterproject/mymasterproject.cpp -o CMakeFiles/server_example_goose.dir/mymasterproject.cpp.s
 
 CMakeFiles/server_example_goose.dir/static_model.c.o: CMakeFiles/server_example_goose.dir/flags.make
 CMakeFiles/server_example_goose.dir/static_model.c.o: ../static_model.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/var/www/html/server_example_goose/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/server_example_goose.dir/static_model.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/server_example_goose.dir/static_model.c.o   -c /var/www/html/server_example_goose/static_model.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/d/mymasterproject/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/server_example_goose.dir/static_model.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/server_example_goose.dir/static_model.c.o   -c /home/d/mymasterproject/static_model.c
 
 CMakeFiles/server_example_goose.dir/static_model.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/server_example_goose.dir/static_model.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /var/www/html/server_example_goose/static_model.c > CMakeFiles/server_example_goose.dir/static_model.c.i
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/d/mymasterproject/static_model.c > CMakeFiles/server_example_goose.dir/static_model.c.i
 
 CMakeFiles/server_example_goose.dir/static_model.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/server_example_goose.dir/static_model.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /var/www/html/server_example_goose/static_model.c -o CMakeFiles/server_example_goose.dir/static_model.c.s
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/d/mymasterproject/static_model.c -o CMakeFiles/server_example_goose.dir/static_model.c.s
 
 # Object files for target server_example_goose
 server_example_goose_OBJECTS = \
-"CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o" \
+"CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o" \
 "CMakeFiles/server_example_goose.dir/static_model.c.o"
 
 # External object files for target server_example_goose
 server_example_goose_EXTERNAL_OBJECTS =
 
-server_example_goose: CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o
+server_example_goose: CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o
 server_example_goose: CMakeFiles/server_example_goose.dir/static_model.c.o
 server_example_goose: CMakeFiles/server_example_goose.dir/build.make
 server_example_goose: CMakeFiles/server_example_goose.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/var/www/html/server_example_goose/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable server_example_goose"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/d/mymasterproject/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable server_example_goose"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/server_example_goose.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -108,6 +108,6 @@ CMakeFiles/server_example_goose.dir/clean:
 .PHONY : CMakeFiles/server_example_goose.dir/clean
 
 CMakeFiles/server_example_goose.dir/depend:
-	cd /var/www/html/server_example_goose/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /var/www/html/server_example_goose /var/www/html/server_example_goose /var/www/html/server_example_goose/cmake-build-debug /var/www/html/server_example_goose/cmake-build-debug /var/www/html/server_example_goose/cmake-build-debug/CMakeFiles/server_example_goose.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/d/mymasterproject/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/d/mymasterproject /home/d/mymasterproject /home/d/mymasterproject/cmake-build-debug /home/d/mymasterproject/cmake-build-debug /home/d/mymasterproject/cmake-build-debug/CMakeFiles/server_example_goose.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/server_example_goose.dir/depend
 

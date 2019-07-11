@@ -8,33 +8,33 @@
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="/var/www/html/server_example_goose/cmake-build-debug"/>
+				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="/var/www/html/server_example_goose/cmake-build-debug"/>
+				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="server_example_goose">
-				<Option output="/var/www/html/server_example_goose/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/var/www/html/server_example_goose/cmake-build-debug"/>
+				<Option output="/home/d/mymasterproject/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/var/www/html/server_example_goose/."/>
+					<Add directory="/home/d/mymasterproject/."/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
 					<Add directory="/usr/include/c++/7/backward"/>
@@ -45,20 +45,20 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose"/>
-					<CompileFile command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="server_example_goose/fast">
-				<Option output="/var/www/html/server_example_goose/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/var/www/html/server_example_goose/cmake-build-debug"/>
+				<Option output="/home/d/mymasterproject/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/var/www/html/server_example_goose/."/>
+					<Add directory="/home/d/mymasterproject/."/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
 					<Add directory="/usr/include/c++/7/backward"/>
@@ -69,33 +69,33 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose/fast"/>
-					<CompileFile command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="/var/www/html/server_example_goose/cmake-build-debug"/>
+				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/var/www/html/server_example_goose/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/var/www/html/server_example_goose/server_example_goose.cpp">
+		<Unit filename="/home/d/mymasterproject/mymasterproject.cpp">
 			<Option target="server_example_goose"/>
 		</Unit>
-		<Unit filename="/var/www/html/server_example_goose/static_model.c">
+		<Unit filename="/home/d/mymasterproject/static_model.c">
 			<Option target="server_example_goose"/>
 		</Unit>
-		<Unit filename="/var/www/html/server_example_goose/static_model.h">
+		<Unit filename="/home/d/mymasterproject/static_model.h">
 			<Option target="server_example_goose"/>
 		</Unit>
-		<Unit filename="/var/www/html/server_example_goose/CMakeLists.txt">
+		<Unit filename="/home/d/mymasterproject/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
 	</Project>

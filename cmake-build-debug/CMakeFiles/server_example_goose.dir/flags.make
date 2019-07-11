@@ -7,11 +7,11 @@ C_FLAGS = -g   -pthread
 
 C_DEFINES = 
 
-C_INCLUDES = -I/var/www/html/server_example_goose/. 
+C_INCLUDES = -I/home/d/mymasterproject/. 
 
 CXX_FLAGS =  -std=c++11 -g   -pthread
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/var/www/html/server_example_goose/. 
+CXX_INCLUDES = -I/home/d/mymasterproject/. 
 

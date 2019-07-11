@@ -48,10 +48,10 @@ RM = /home/d/clion-2019.1.4/bin/cmake/linux/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /var/www/html/server_example_goose
+CMAKE_SOURCE_DIR = /home/d/mymasterproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /var/www/html/server_example_goose/cmake-build-debug
+CMAKE_BINARY_DIR = /home/d/mymasterproject/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /var/www/html/server_example_goose/cmake-build-debug/CMakeFiles /var/www/html/server_example_goose/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/d/mymasterproject/cmake-build-debug/CMakeFiles /home/d/mymasterproject/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /var/www/html/server_example_goose/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/d/mymasterproject/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -123,32 +123,32 @@ server_example_goose/fast:
 	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/build
 .PHONY : server_example_goose/fast
 
-server_example_goose.o: server_example_goose.cpp.o
+mymasterproject.o: mymasterproject.cpp.o
 
-.PHONY : server_example_goose.o
+.PHONY : mymasterproject.o
 
 # target to build an object file
-server_example_goose.cpp.o:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o
-.PHONY : server_example_goose.cpp.o
+mymasterproject.cpp.o:
+	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o
+.PHONY : mymasterproject.cpp.o
 
-server_example_goose.i: server_example_goose.cpp.i
+mymasterproject.i: mymasterproject.cpp.i
 
-.PHONY : server_example_goose.i
+.PHONY : mymasterproject.i
 
 # target to preprocess a source file
-server_example_goose.cpp.i:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/server_example_goose.cpp.i
-.PHONY : server_example_goose.cpp.i
+mymasterproject.cpp.i:
+	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.i
+.PHONY : mymasterproject.cpp.i
 
-server_example_goose.s: server_example_goose.cpp.s
+mymasterproject.s: mymasterproject.cpp.s
 
-.PHONY : server_example_goose.s
+.PHONY : mymasterproject.s
 
 # target to generate assembly for a file
-server_example_goose.cpp.s:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/server_example_goose.cpp.s
-.PHONY : server_example_goose.cpp.s
+mymasterproject.cpp.s:
+	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.s
+.PHONY : mymasterproject.cpp.s
 
 static_model.o: static_model.c.o
 
@@ -186,9 +186,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... server_example_goose"
 	@echo "... edit_cache"
-	@echo "... server_example_goose.o"
-	@echo "... server_example_goose.i"
-	@echo "... server_example_goose.s"
+	@echo "... mymasterproject.o"
+	@echo "... mymasterproject.i"
+	@echo "... mymasterproject.s"
 	@echo "... static_model.o"
 	@echo "... static_model.i"
 	@echo "... static_model.s"
