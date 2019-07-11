@@ -65,39 +65,39 @@ CMAKE_SOURCE_DIR = /home/d/mymasterproject
 CMAKE_BINARY_DIR = /home/d/mymasterproject/cmake-build-debug
 
 #=============================================================================
-# Target rules for target CMakeFiles/server_example_goose.dir
+# Target rules for target CMakeFiles/mymasterproject.dir
 
 # All Build rule for target.
-CMakeFiles/server_example_goose.dir/all:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/depend
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/d/mymasterproject/cmake-build-debug/CMakeFiles --progress-num=1,2,3 "Built target server_example_goose"
-.PHONY : CMakeFiles/server_example_goose.dir/all
+CMakeFiles/mymasterproject.dir/all:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/depend
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/d/mymasterproject/cmake-build-debug/CMakeFiles --progress-num=1,2,3 "Built target mymasterproject"
+.PHONY : CMakeFiles/mymasterproject.dir/all
 
 # Include target in all.
-all: CMakeFiles/server_example_goose.dir/all
+all: CMakeFiles/mymasterproject.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/server_example_goose.dir/rule: cmake_check_build_system
+CMakeFiles/mymasterproject.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/d/mymasterproject/cmake-build-debug/CMakeFiles 3
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/server_example_goose.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mymasterproject.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/d/mymasterproject/cmake-build-debug/CMakeFiles 0
-.PHONY : CMakeFiles/server_example_goose.dir/rule
+.PHONY : CMakeFiles/mymasterproject.dir/rule
 
 # Convenience name for target.
-server_example_goose: CMakeFiles/server_example_goose.dir/rule
+mymasterproject: CMakeFiles/mymasterproject.dir/rule
 
-.PHONY : server_example_goose
-
-# clean rule for target.
-CMakeFiles/server_example_goose.dir/clean:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/clean
-.PHONY : CMakeFiles/server_example_goose.dir/clean
+.PHONY : mymasterproject
 
 # clean rule for target.
-clean: CMakeFiles/server_example_goose.dir/clean
+CMakeFiles/mymasterproject.dir/clean:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/clean
+.PHONY : CMakeFiles/mymasterproject.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/mymasterproject.dir/clean
 
 .PHONY : clean
 

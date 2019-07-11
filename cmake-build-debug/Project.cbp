@@ -27,8 +27,8 @@
 					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="server_example_goose">
-				<Option output="/home/d/mymasterproject/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
+			<Target title="mymasterproject">
+				<Option output="/home/d/mymasterproject/cmake-build-debug/mymasterproject" prefix_auto="0" extension_auto="0"/>
 				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
@@ -45,14 +45,14 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 mymasterproject"/>
 					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="server_example_goose/fast">
-				<Option output="/home/d/mymasterproject/cmake-build-debug/server_example_goose" prefix_auto="0" extension_auto="0"/>
+			<Target title="mymasterproject/fast">
+				<Option output="/home/d/mymasterproject/cmake-build-debug/mymasterproject" prefix_auto="0" extension_auto="0"/>
 				<Option working_dir="/home/d/mymasterproject/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
@@ -69,7 +69,7 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_example_goose/fast"/>
+					<Build command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 mymasterproject/fast"/>
 					<CompileFile command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -f &quot;/home/d/mymasterproject/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -87,13 +87,13 @@
 			</Target>
 		</Build>
 		<Unit filename="/home/d/mymasterproject/mymasterproject.cpp">
-			<Option target="server_example_goose"/>
+			<Option target="mymasterproject"/>
 		</Unit>
 		<Unit filename="/home/d/mymasterproject/static_model.c">
-			<Option target="server_example_goose"/>
+			<Option target="mymasterproject"/>
 		</Unit>
 		<Unit filename="/home/d/mymasterproject/static_model.h">
-			<Option target="server_example_goose"/>
+			<Option target="mymasterproject"/>
 		</Unit>
 		<Unit filename="/home/d/mymasterproject/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>

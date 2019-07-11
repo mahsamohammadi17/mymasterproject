@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named server_example_goose
+# Target rules for targets named mymasterproject
 
 # Build rule for target.
-server_example_goose: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 server_example_goose
-.PHONY : server_example_goose
+mymasterproject: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 mymasterproject
+.PHONY : mymasterproject
 
 # fast build rule for target.
-server_example_goose/fast:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/build
-.PHONY : server_example_goose/fast
+mymasterproject/fast:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/build
+.PHONY : mymasterproject/fast
 
 mymasterproject.o: mymasterproject.cpp.o
 
@@ -129,7 +129,7 @@ mymasterproject.o: mymasterproject.cpp.o
 
 # target to build an object file
 mymasterproject.cpp.o:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.o
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o
 .PHONY : mymasterproject.cpp.o
 
 mymasterproject.i: mymasterproject.cpp.i
@@ -138,7 +138,7 @@ mymasterproject.i: mymasterproject.cpp.i
 
 # target to preprocess a source file
 mymasterproject.cpp.i:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.i
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/mymasterproject.cpp.i
 .PHONY : mymasterproject.cpp.i
 
 mymasterproject.s: mymasterproject.cpp.s
@@ -147,7 +147,7 @@ mymasterproject.s: mymasterproject.cpp.s
 
 # target to generate assembly for a file
 mymasterproject.cpp.s:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/mymasterproject.cpp.s
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/mymasterproject.cpp.s
 .PHONY : mymasterproject.cpp.s
 
 static_model.o: static_model.c.o
@@ -156,7 +156,7 @@ static_model.o: static_model.c.o
 
 # target to build an object file
 static_model.c.o:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/static_model.c.o
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/static_model.c.o
 .PHONY : static_model.c.o
 
 static_model.i: static_model.c.i
@@ -165,7 +165,7 @@ static_model.i: static_model.c.i
 
 # target to preprocess a source file
 static_model.c.i:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/static_model.c.i
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/static_model.c.i
 .PHONY : static_model.c.i
 
 static_model.s: static_model.c.s
@@ -174,7 +174,7 @@ static_model.s: static_model.c.s
 
 # target to generate assembly for a file
 static_model.c.s:
-	$(MAKE) -f CMakeFiles/server_example_goose.dir/build.make CMakeFiles/server_example_goose.dir/static_model.c.s
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/static_model.c.s
 .PHONY : static_model.c.s
 
 # Help Target
@@ -184,7 +184,7 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... server_example_goose"
+	@echo "... mymasterproject"
 	@echo "... edit_cache"
 	@echo "... mymasterproject.o"
 	@echo "... mymasterproject.i"
