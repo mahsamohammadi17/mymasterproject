@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++11 -g  -rdynamic CMakeFiles/server_example_goose.dir/server_example_goose.cpp.o CMakeFiles/server_example_goose.dir/static_model.c.o  -o server_example_goose -liec61850 -pthread 
