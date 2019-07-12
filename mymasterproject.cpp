@@ -23,6 +23,7 @@
 #include "goose_publisher.h"
 
 #define pass return
+#define do_nothing ;
 using namespace std;
 
 /* import IEC 61850 device model created from SCL-File */
@@ -76,6 +77,7 @@ struct GOOSEvaluemeas//MEAS
 #define MMXU_Hz_instMag_f__ hz
 #define MMXU_TotPF_instMag_f__ totpf
 MmsValue * mmsvaluestatus, *mmsvaluealarm, *mmsvaluemeas;
+uint32_t stnum901, stnum902,stnum903,    stnum901last, stnum902last, stnum903last;
 void gooseListener(GooseSubscriber subscriber, void* parameter)
 {
     uint16_t *appid;
@@ -84,6 +86,10 @@ void gooseListener(GooseSubscriber subscriber, void* parameter)
     printf("GOOSE event:\n");
     printf("  stNum: %u sqNum: %u\n", GooseSubscriber_getStNum(subscriber),
            GooseSubscriber_getSqNum(subscriber));
+    if(*appid==901)stnum901=GooseSubscriber_getStNum(subscriber);
+    else if(*appid==902)stnum902=GooseSubscriber_getStNum(subscriber);
+    else if (*appid==903)stnum903=GooseSubscriber_getStNum(subscriber);
+    else do_nothing
     printf("  timeToLive: %u\n", GooseSubscriber_getTimeAllowedToLive(subscriber));
 
     uint64_t timestamp = GooseSubscriber_getTimestamp(subscriber);
@@ -117,8 +123,8 @@ void* subscribeGOOSEfromrealIED(void *arg)
         GooseReceiver_setInterfaceId(receiver, argv[1]);
     }
     else {*/
-        printf("Goose receiver: Using interface enp0s8\n");
-        GooseReceiver_setInterfaceId(receiver, "enp0s8");//GooseReceiver_setInterfaceId(receiver2, "enp0s8");GooseReceiver_setInterfaceId(receiver3, "enp0s8");
+        printf("Goose receiver 901: Using interface %s \n", interface);
+        GooseReceiver_setInterfaceId(receiver,interface);//GooseReceiver_setInterfaceId(receiver2, "enp0s8");GooseReceiver_setInterfaceId(receiver3, "enp0s8");
   //  }
 
     GooseSubscriber subscriber = GooseSubscriber_create("LIED20CTRL/LLN0$GO$Status", NULL);
@@ -171,8 +177,8 @@ void* subscribeGOOSEfromrealIEDalarm(void *arg){
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
     GooseReceiver receiver2 = GooseReceiver_create();//GooseReceiver receiver3= GooseReceiver_create();
-    printf("Goose receiver: Using interface enp0s8\n");
-    GooseReceiver_setInterfaceId(receiver2, "enp0s8");//GooseReceiver_setInterfaceId(receiver3, "enp0s8");
+    printf("Goose receiver 902: Using interface %s\n",interface);
+    GooseReceiver_setInterfaceId(receiver2, interface);//GooseReceiver_setInterfaceId(receiver3, "enp0s8");
     GooseSubscriber subscriber2 = GooseSubscriber_create("LIED20PROT/LLN0$GO$Alarm", NULL);
     // GooseSubscriber subscriber3 = GooseSubscriber_create("LIED20MEAS/LLN0$GO$Meas", NULL);
     uint16_t appid=902;uint16_t *appidp;appidp=&appid;
@@ -220,8 +226,8 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
     GooseReceiver receiver3= GooseReceiver_create();
-    printf("Goose receiver: Using interface enp0s8\n");
-    GooseReceiver_setInterfaceId(receiver3, "enp0s8");
+    printf("Goose receiver 903: Using interface %s\n", interface);
+    GooseReceiver_setInterfaceId(receiver3, interface);
     GooseSubscriber subscriber3 = GooseSubscriber_create("LIED20MEAS/LLN0$GO$Meas", NULL);
     uint16_t appid=903;uint16_t *appidp;appidp=&appid;
     GooseSubscriber_setAppId(subscriber3, appid);
@@ -264,18 +270,15 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
 
 };
 /* Callback handler for received SV messages */
+float datasv[10];
 static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscriber_ASDU asdu)
 {
     printf("svUpdateListener called\n");
-
     const char* svID = SVSubscriber_ASDU_getSvId(asdu);
-
     if (svID != NULL)
         printf("  svID=(%s)\n", svID);
-
     printf("  smpCnt: %i\n", SVSubscriber_ASDU_getSmpCnt(asdu));
     printf("  confRev: %u\n", SVSubscriber_ASDU_getConfRev(asdu));
-
     /*
      * Access to the data requires a priori knowledge of the data set.
      * For this example we assume a data set consisting of FLOAT32 values.
@@ -286,15 +289,17 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
      * To prevent damages due configuration, please check the length of the
      * data block of the SV message before accessing the data.
      */
-    if (1==1){//(SVSubscriber_ASDU_getDataSize(asdu) >= 8) {
-        printf("   DATA[0]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 0));
-        printf("   DATA[1]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4));
-        printf("   DATA[2]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*2));
-        printf("   DATA[3]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*3));
-        printf("   DATA[4]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*4));
-        printf("   DATA[5]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*5));
-    }
+
+    if (SVSubscriber_ASDU_getDataSize(asdu) >= 8) {
+        printf("   DATA[0]: %f\n", datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));
+        printf("   DATA[1]: %f\n", datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));
+    //    printf("   DATA[2]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*2));
+     //   printf("   DATA[3]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*3));
+      //  printf("   DATA[4]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*4));
+       // printf("   DATA[5]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*5));
+   }
 }
+
 
 
 void* subscribeSV(void *arg)
@@ -303,41 +308,31 @@ void* subscribeSV(void *arg)
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
     SVReceiver receiver = SVReceiver_create();
-
   /*  if (argc > 1) {
         SVReceiver_setInterfaceId(receiver, argv[1]);
         printf("Set interface id: %s\n", argv[1]);
     }*/
   //  else {
-        printf("SV subscriber: Using interface enp0s8\n");
-        SVReceiver_setInterfaceId(receiver, "enp0s8");
+        printf("SV subscriber: Using interface %s\n", interface);
+        SVReceiver_setInterfaceId(receiver, interface);
   //  }
 
     /* Create a subscriber listening to SV messages with APPID 4000h */
-    SVSubscriber subscriber = SVSubscriber_create(NULL, 0x4000);
-
+    SVSubscriber subscriber = SVSubscriber_create(NULL, 0x4001);
     /* Install a callback handler for the subscriber */
     SVSubscriber_setListener(subscriber, svUpdateListener, NULL);
-
     /* Connect the subscriber to the receiver */
     SVReceiver_addSubscriber(receiver, subscriber);
-
     /* Start listening to SV messages - starts a new receiver background thread */
     SVReceiver_start(receiver);
-
     signal(SIGINT, sigint_handler);
-
     while (running)
-        Thread_sleep(2);
-
+        Thread_sleep(3);
     /* Stop listening to SV messages */
     SVReceiver_stop(receiver);
-
     /* Cleanup and free resources */
     SVReceiver_destroy(receiver);
-
 }
-
 
 
 void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
@@ -393,25 +388,122 @@ void give_alarm(void* arg){
     pass;
 }
 
-void* goosepublisherMAIN(void *arg){
+void * copy_GOOSEfrom_real_IED(){
+#define update_GOOSE_via_realIED 1
+#if     update_GOOSE_via_realIED ==1
+copy_GOOSEfrom_real_IED_begin:
+    /*UPDATE STATUS*/
+    if(stnum901!=stnum901last) {
+        if (IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal) != gostatus.XCBR_Pos) {
+            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal, gostatus.XCBR_Pos);
+        }
+        if (IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal) != gostatus.XSWI_Pos) {
+            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal, gostatus.XSWI_Pos);
+        }
+        if (IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_PTRC_EEHealth_stVal) !=gostatus.PTRC_EEHealth) {
+            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_PTRC_EEHealth_stVal,gostatus.PTRC_EEHealth);
+        }
+        if (IedServer_getBooleanAttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Loc_stVal) != gostatus.XCBR_Loc) {
+            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Loc_stVal, gostatus.XCBR_Loc);
+        }
+        stnum901last=stnum901;
+        cout<<"status updates 901\t"<<stnum901last<<"\t"<<stnum901<<endl;
+    }
+    /*UPDATE ALARM*/
+    if(stnum902!=stnum902last) {
+        if (IedServer_getBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general) !=goalarm.PIOC_Op_general) {
+            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,goalarm.PIOC_Op_general);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getInt32AttributeValue(iedServer, IEDMODEL_PROT_XCBR_EEHealth_stVal) !=goalarm.XCBR_EEHealth) {
+            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_PROT_XCBR_EEHealth_stVal,goalarm.XCBR_EEHealth);
+        }
+        if (IedServer_getBooleanAttributeValue(iedServer, IEDMODEL_PROT_LPHD_PwrSupAlm_stVal) !=goalarm.LPHD_PwrSupAlm) {
+            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_LPHD_PwrSupAlm_stVal,goalarm.LPHD_PwrSupAlm);
+        }
+        if (IedServer_getBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProTx_stVal) != goalarm.PSCH_ProTx) {
+            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProTx_stVal, goalarm.PSCH_ProTx);
+        }
+        if (IedServer_getBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProRx_stVal) != goalarm.PSCH_ProRx) {
+            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProRx_stVal, goalarm.PSCH_ProRx);
+        }
+        stnum902last=stnum902;
+        cout<<"alarm updates 902\t"<<stnum902last<<"\t"<<stnum902<<endl;
+    }
+    /*UPDATE MEASurement*/
+    if(stnum903!=stnum903last) {
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=gomeas.MMXU_A_phsA_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,gomeas.MMXU_A_phsA_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=gomeas.MMXU_A_phsB_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,gomeas.MMXU_A_phsB_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=gomeas.MMXU_A_phsC_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,gomeas.MMXU_A_phsC_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
+        }//**********************************************
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=gomeas.MMXU_PhV_phsA_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,gomeas.MMXU_PhV_phsA_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=gomeas.MMXU_PhV_phsB_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,gomeas.MMXU_PhV_phsB_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=gomeas.MMXU_PhV_phsC_instCVal_mag_f__) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,gomeas.MMXU_PhV_phsC_instCVal_mag_f__);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
+        }//**********************************************
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != gomeas.totw) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f, gomeas.totw);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != gomeas.totvar) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f, gomeas.totvar);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != gomeas.hz) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, gomeas.hz);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
+        }
+        if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != gomeas.totpf) {
+            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f, gomeas.totpf);
+            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
+        }
+        stnum903last=stnum903;
+        cout<<"measurement updates 903\t"<<stnum903last<<"\t"<<stnum903<<endl;
+    }/*UPDATE FINISHED*/
+    if(running)goto copy_GOOSEfrom_real_IED_begin;
+#endif
+}
 
+queue <float> q1;
+
+
+void* update_MEAS_from_SV(){
+#define update_GOOSE_MEASurement_via_SV 0
+#if update_GOOSE_MEASurement_via_SV == 1
+    int PhVa,Aa;
+    Aa=datasv[0]; PhVa=datasv[1];
+
+
+
+#endif
+}
+void* goosepublisherMAIN(void *arg){
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
-
     iedServer = IedServer_create(&iedModel);
-//	IedServer_
-
 //	if (argc > 1) {
     char* ethernetIfcID = para.interface;
     ethernetIfcID="enp0s8";
     printf("GOOSE publisher: Using GOOSE interface: %s\n", ethernetIfcID);
     IedServer_setGooseInterfaceId(iedServer, ethernetIfcID);
     //}
-
     /* MMS server will be instructed to start listening to client connections. */
     IedServer_start(iedServer, 1103);
-
-
     //IedServer_setControlHandler(iedServer, IEDMODEL_CTRL_LLN0, (ControlHandler) controlHandlerForBinaryOutput,    IEDMODEL_CTRL_LLN0);
 
     /*IedServer_setControlHandler(iedServer, IEDMODEL_CTRL_SPDOesGGIO1_SPCSO, (ControlHandler) controlHandlerForBinaryOutput,
@@ -422,111 +514,26 @@ void* goosepublisherMAIN(void *arg){
 
     IedServer_setControlHandler(iedServer, IEDMODEL_CTRL_SPDOesGGIO3_SPCSO, (ControlHandler) controlHandlerForBinaryOutput,
                                 IEDMODEL_CTRL_SPDOesGGIO3_SPCSO);*/
-
     if (!IedServer_isRunning(iedServer)) {
         printf("Starting server failed! Exit.\n");
         IedServer_destroy(iedServer);
         exit(-1);
     }
-
     /* Start GOOSE publishing */
     IedServer_enableGoosePublishing(iedServer);
-
-
     signal(SIGINT, sigint_handler);
-
     float anIn1=0.1f;
     while (running) {
         IedServer_lockDataModel(iedServer);
         /*       Timestamp ts;
                Timestamp_clearFlags(&ts);
                Timestamp_setTimeInMilliseconds(&ts, Hal_getTimeInMs());*/
-#define update_GOOSE_via_realIED 1
-#ifdef     update_GOOSE_via_realIED
-        /*UPDATE STATUS*/
-        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Pos_stVal)!=gostatus.XCBR_Pos){
-             IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal, gostatus.XCBR_Pos);
-        }
-        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_CTRL_XSWI_Pos_stVal)!=gostatus.XSWI_Pos){
-            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal, gostatus.XSWI_Pos);
-        }
-        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_CTRL_PTRC_EEHealth_stVal)!=gostatus.PTRC_EEHealth){
-            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_PTRC_EEHealth_stVal, gostatus.PTRC_EEHealth);
-        }
-        if(IedServer_getBooleanAttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Loc_stVal)!=gostatus.XCBR_Loc){
-            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Loc_stVal, gostatus.XCBR_Loc);
-        }
-        /*UPDATE ALARM*/
-        if(IedServer_getBooleanAttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_general)!=goalarm.PIOC_Op_general){
-            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general, goalarm.PIOC_Op_general);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs());
-        }
-        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal)!=goalarm.XCBR_EEHealth){
-            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_PROT_XCBR_EEHealth_stVal,goalarm.XCBR_EEHealth);
-        }
-        if(IedServer_getBooleanAttributeValue(iedServer,IEDMODEL_PROT_LPHD_PwrSupAlm_stVal)!=goalarm.LPHD_PwrSupAlm){
-            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_LPHD_PwrSupAlm_stVal, goalarm.LPHD_PwrSupAlm);
-        }
-        if(IedServer_getBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProTx_stVal)!=goalarm.PSCH_ProTx){
-            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProTx_stVal, goalarm.PSCH_ProTx);
-        }
-        if(IedServer_getBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProRx_stVal)!=goalarm.PSCH_ProRx){
-            IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProRx_stVal,goalarm.PSCH_ProRx);
-        }
-        /*UPDATE MEASurement*/
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f)!=gomeas.MMXU_A_phsA_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,gomeas.MMXU_A_phsA_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsA_t,Hal_getTimeInMs());
-        }
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f)!=gomeas.MMXU_A_phsB_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,gomeas.MMXU_A_phsB_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsB_t,Hal_getTimeInMs());
-        }
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f)!=gomeas.MMXU_A_phsC_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,gomeas.MMXU_A_phsC_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsC_t,Hal_getTimeInMs());
-        }//**********************************************
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f)!=gomeas.MMXU_PhV_phsA_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,gomeas.MMXU_PhV_phsA_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsA_t,Hal_getTimeInMs());
-        }
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f)!=gomeas.MMXU_PhV_phsB_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,gomeas.MMXU_PhV_phsB_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsB_t,Hal_getTimeInMs());
-        }
-        if(IedServer_getFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f)!=gomeas.MMXU_PhV_phsC_instCVal_mag_f__){
-            IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,gomeas.MMXU_PhV_phsC_instCVal_mag_f__);
-            IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsC_t,Hal_getTimeInMs());
-        }//**********************************************
-        if(IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f)!=gomeas.totw){
-            IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotW_instMag_f, gomeas.totw );
-            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t,Hal_getTimeInMs() );
-        }
-        if(IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f)!=gomeas.totvar){
-            IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotVAr_instMag_f, gomeas.totvar );
-            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t,Hal_getTimeInMs() );
-        }
-        if(IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f)!=gomeas.hz){
-            IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_Hz_instMag_f, gomeas.hz);
-            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t,Hal_getTimeInMs() );
-        }
-        if(IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f)!=gomeas.totpf){
-            IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotPF_instMag_f, gomeas.totpf  );
-            IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t,Hal_getTimeInMs() );
-        }/*UPDATE FINISHED*/
-#endif
-
-        //      IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
-    //    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, anIn1);
-
 #ifdef gpincreasestnum
         GoosePublisher_increaseStNum(publisher);
 #endif
         IedServer_unlockDataModel(iedServer);
-
         Thread_sleep(3);
     }
-
     /* stop MMS server - close TCP server socket and all client sockets */
     IedServer_stop(iedServer);
     /* Cleanup - free all resources */
@@ -535,7 +542,7 @@ void* goosepublisherMAIN(void *arg){
 
 
 int main(int argc, char** argv) {
-     mmsvaluestatus=NULL; mmsvaluealarm=NULL;mmsvaluemeas=NULL;
+    mmsvaluestatus=NULL; mmsvaluealarm=NULL;mmsvaluemeas=NULL;
     running = 1;
     pthread_t thread[10];
     int t_id[10];
