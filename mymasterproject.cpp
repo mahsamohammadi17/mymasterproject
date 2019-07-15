@@ -28,7 +28,6 @@ using namespace std;
 
 /* import IEC 61850 device model created from SCL-File */
 extern IedModel iedModel;
-
 static int running = 0;
 static IedServer iedServer = NULL;
 
@@ -59,6 +58,7 @@ struct GOOSEvaluealarm//PROT
     bool LPHD_PwrSupAlm;
     bool PSCH_ProTx,PSCH_ProRx;
 }goalarm,goalarmold;
+
 struct GOOSEvaluemeas//MEAS
 {
     float aphsa,aphsb,aphsc;
@@ -66,6 +66,7 @@ struct GOOSEvaluemeas//MEAS
     float totw,totvar;
     float hz,totpf;
 }gomeas,gomeasold;
+
 #define MMXU_A_phsA_instCVal_mag_f__ aphsa
 #define MMXU_A_phsB_instCVal_mag_f__ aphsb
 #define MMXU_A_phsC_instCVal_mag_f__ aphsc
@@ -76,8 +77,10 @@ struct GOOSEvaluemeas//MEAS
 #define MMXU_TotVAr_instMag_f__ totvar
 #define MMXU_Hz_instMag_f__ hz
 #define MMXU_TotPF_instMag_f__ totpf
+
 MmsValue * mmsvaluestatus, *mmsvaluealarm, *mmsvaluemeas;
 uint32_t stnum901, stnum902,stnum903,    stnum901last, stnum902last, stnum903last;
+
 void gooseListener(GooseSubscriber subscriber, void* parameter)
 {
     uint16_t *appid;
@@ -111,7 +114,7 @@ void gooseListener(GooseSubscriber subscriber, void* parameter)
 }
 
 #define subscribeGOOSEfromrealIEDstatus subscribeGOOSEfromrealIED
-void* subscribeGOOSEfromrealIED(void *arg)
+void* subscribeGOOSEfromrealIED(void *arg)//subscribeGOOSEfromrealIEDstatus
 {
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
@@ -158,7 +161,6 @@ void* subscribeGOOSEfromrealIED(void *arg)
             gostatus.PTRC_EEHealth= atoi(strtok(NULL,delim));
             gostatus.XCBR_Loc= strcmp(strtok(NULL,delim),"true")==0;
           //  cout<<gostatus.XCBR_Pos<< gostatus.XSWI_Pos<<gostatus.XSWI_Pos2<< gostatus.PTRC_EEHealth<<boolalpha<<gostatus.XCBR_Loc<<endl;
-
         }
         catch (...)
         {
@@ -269,16 +271,19 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
     GooseReceiver_destroy(receiver3);
 
 };
+
 /* Callback handler for received SV messages */
 float datasv[10];
 static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscriber_ASDU asdu)
 {
+    uint16_t appid=*(uint16_t*)parameter;
     printf("svUpdateListener called\n");
     const char* svID = SVSubscriber_ASDU_getSvId(asdu);
     if (svID != NULL)
         printf("  svID=(%s)\n", svID);
     printf("  smpCnt: %i\n", SVSubscriber_ASDU_getSmpCnt(asdu));
     printf("  confRev: %u\n", SVSubscriber_ASDU_getConfRev(asdu));
+    printf("  appID: %u\n", appid);
     /*
      * Access to the data requires a priori knowledge of the data set.
      * For this example we assume a data set consisting of FLOAT32 values.
@@ -289,57 +294,48 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
      * To prevent damages due configuration, please check the length of the
      * data block of the SV message before accessing the data.
      */
-
     if (SVSubscriber_ASDU_getDataSize(asdu) >= 8) {
-        printf("   DATA[0]: %f\n", datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));
-        printf("   DATA[1]: %f\n", datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));
-    //    printf("   DATA[2]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*2));
-     //   printf("   DATA[3]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*3));
-      //  printf("   DATA[4]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*4));
-       // printf("   DATA[5]: %f\n", SVSubscriber_ASDU_getFLOAT32(asdu, 4*5));
+       if(appid==0x4001)     { printf(" 0x4001  DATA[0]: %f\n", datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+       else if(appid==0x4002){ printf(" 0x4002  DATA[0]: %f\n", datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+       else if(appid==0x4003){ printf(" 0x4003  DATA[0]: %f\n", datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
    }
 }
-
-
 
 void* subscribeSV(void *arg)
 {
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
-    SVReceiver receiver = SVReceiver_create();
+    SVReceiver receiver1 = SVReceiver_create(); SVReceiver receiver2 = SVReceiver_create(); SVReceiver receiver3 = SVReceiver_create();
   /*  if (argc > 1) {
         SVReceiver_setInterfaceId(receiver, argv[1]);
         printf("Set interface id: %s\n", argv[1]);
     }*/
   //  else {
         printf("SV subscriber: Using interface %s\n", interface);
-        SVReceiver_setInterfaceId(receiver, interface);
+        SVReceiver_setInterfaceId(receiver1, interface);SVReceiver_setInterfaceId(receiver2, interface);SVReceiver_setInterfaceId(receiver3, interface);
   //  }
-
     /* Create a subscriber listening to SV messages with APPID 4000h */
-    SVSubscriber subscriber = SVSubscriber_create(NULL, 0x4001);
+    uint16_t appid1=0x4001;uint16_t appid2=0x4002;uint16_t appid3=0x4003;
+    SVSubscriber subscriber1 = SVSubscriber_create(NULL, appid1);SVSubscriber subscriber2 = SVSubscriber_create(NULL, appid2);SVSubscriber subscriber3 = SVSubscriber_create(NULL, appid3);
     /* Install a callback handler for the subscriber */
-    SVSubscriber_setListener(subscriber, svUpdateListener, NULL);
+    SVSubscriber_setListener(subscriber1, svUpdateListener, (void*)&appid1); SVSubscriber_setListener(subscriber2, svUpdateListener, (void*)&appid2); SVSubscriber_setListener(subscriber3, svUpdateListener, (void*)&appid3);
     /* Connect the subscriber to the receiver */
-    SVReceiver_addSubscriber(receiver, subscriber);
+    SVReceiver_addSubscriber(receiver1, subscriber1);SVReceiver_addSubscriber(receiver2, subscriber2);SVReceiver_addSubscriber(receiver3, subscriber3);
     /* Start listening to SV messages - starts a new receiver background thread */
-    SVReceiver_start(receiver);
+    SVReceiver_start(receiver1);  SVReceiver_start(receiver2);  SVReceiver_start(receiver3);
     signal(SIGINT, sigint_handler);
     while (running)
-        Thread_sleep(3);
+        Thread_sleep(1);
     /* Stop listening to SV messages */
-    SVReceiver_stop(receiver);
+    SVReceiver_stop(receiver1);SVReceiver_stop(receiver2);SVReceiver_stop(receiver3);
     /* Cleanup and free resources */
-    SVReceiver_destroy(receiver);
+    SVReceiver_destroy(receiver1);SVReceiver_destroy(receiver2);SVReceiver_destroy(receiver3);
 }
-
 
 void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
 {
     uint64_t timestamp = Hal_getTimeInMs();
-
-
 /*    if (parameter ==  IEDMODEL_CTRL_LLN0_Beh ) {//(parameter == IEDMODEL_CTRL_LLN0) {
         IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_CTRL_LLN0_Beh_t, timestamp);
         IedServer_updateAttributeValue(iedServer, IEDMODEL_CTRL_LLN0_Beh_stVal, value);
@@ -385,11 +381,28 @@ void logic_inside(void* arg){
 }
 
 void give_alarm(void* arg){
-    pass;
+    float thresholdA=10;
+    //alarm PIOC instantaneous overcurrent
+    if( IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) >thresholdA ||IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_cVal_mag_f)>thresholdA
+        || IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) >thresholdA ||datasv[1]>thresholdA||datasv[3]>thresholdA|| datasv[5] > thresholdA){
+        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,true);
+        IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0b1010000000000);//reserved: overflow
+        IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
+        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
+        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,1);//XSWI circuit switch
+    }
+    else{
+        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
+        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
+        IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
+        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
+        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,0);//XSWI circuit switch
+    }
+
 }
 
 void * copy_GOOSEfrom_real_IED(){
-#define update_GOOSE_via_realIED 1
+#define update_GOOSE_via_realIED 0
 #if     update_GOOSE_via_realIED ==1
 copy_GOOSEfrom_real_IED_begin:
     /*UPDATE STATUS*/
@@ -479,19 +492,62 @@ copy_GOOSEfrom_real_IED_begin:
 #endif
 }
 
-queue <float> q1;
-
-
+deque <float> aa,ab,ac,va,vb,vc;
 void* update_MEAS_from_SV(){
-#define update_GOOSE_MEASurement_via_SV 0
-#if update_GOOSE_MEASurement_via_SV == 1
-    int PhVa,Aa;
-    Aa=datasv[0]; PhVa=datasv[1];
-
-
-
+    /* Here I force to define 50Hz as the frequency */
+#define update_MEASurement_via_SV 1
+#if update_MEASurement_via_SV == 1
+#define HZ 50
+    float PhVa,Aa,PhVb, Ab, PhVc, Ac;
+    Aa=datasv[1]; PhVa=datasv[0]; Ab=datasv[3]; PhVb=datasv[2]; Ac=datasv[5]; PhVc=datasv[4];
+    if(aa.size()==20)aa.pop_back();if(ab.size()==20)ab.pop_back();if(ac.size()==20)ac.pop_back();if(va.size()==20)va.pop_back();if(vb.size()==20)vb.pop_back();if(vc.size()==20)vc.pop_back();
+    aa.push_front(Aa); ab.push_front(Ab); ac.push_front(Ac); va.push_front(PhVa);vb.push_front(PhVb); vc.push_front(PhVc);
+   // accumulate(aa.front(),aa.back(),0);
+    float aasum=0,absum=0,acsum=0,vasum=0,vbsum=0,vcsum=0, Pa=0, Pb=0, Pc=0, P,Sa, Sb, Sc, Qa, Qb, Qc, Q, phi;
+    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
+    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
+    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
+   // for(int i=0; i<va.size();i++){vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}     vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
+  //  for(int i=0; i<vb.size();i++){vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}     vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
+ //   for(int i=0; i<vc.size();i++){vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}     vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
+    P=Pa+Pb+Pc;
+    Sa=aasum*vasum; Sb=vbsum*absum; Sc=vcsum*acsum;
+    Qa=sqrt(Sa*Sa-Pa*Pa); Qb=sqrt(Sb*Sb-Pb*Pb); Qc=sqrt(Sc*Sc-Pc*Pc); Q=Qa+Qb+Qc;
+    phi=atan(Q/P);
+    cout<<"P= "<<P<<"\tQ= "<<Q<<"\tphi= "<<phi<<endl;
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=aasum) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,aasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=absum) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,absum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=acsum) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,acsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
+    }//**********************************************
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=vasum) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,vasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=vbsum) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,vbsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=  vcsum ) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,  vcsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
+    }//*************************************************************************************
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != P) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f, P);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != Q) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,Q);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != HZ) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, HZ);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
+    }
+    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != cos(phi)) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f, cos(phi));IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
+    }
 #endif
 }
+
 void* goosepublisherMAIN(void *arg){
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
