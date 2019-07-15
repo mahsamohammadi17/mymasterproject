@@ -376,9 +376,9 @@ void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
     }*/
 }
 
-void logic_inside(void* arg){
+/*void logic_inside(void* arg){
     pass;
-}
+}*/
 
 void give_alarm(void* arg){
     float thresholdA=10;
@@ -398,7 +398,15 @@ void give_alarm(void* arg){
         if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
         if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,0);//XSWI circuit switch
     }
-
+  /*
+    IEDMODEL_CTRL_XCBR_Pos_stVal                                        O
+    IEDMODEL_CTRL_XSWI_Pos_stVal                                        O
+    IEDMODEL_PROT_PIOC_Op_general(general, q,t)                         O
+    ---
+    IEDMODEL_PROT_LPHD_PwrSupAlm_stVal                                  X LPHD physical device informaiton, external power supply alarm
+    IEDMODEL_PROT_PSCH_ProRx_stVal, IEDMODEL_PROT_PSCH_ProTx_stVal      X protection scheme, teleprotection signal received/transmitted
+    IEDMODEL_PROT_XCBR_EEHealth_stVal                                   X circuit breaker, eehealth: external equipment health
+    * /
 }
 
 void * copy_GOOSEfrom_real_IED(){
