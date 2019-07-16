@@ -8,6 +8,10 @@ https://libiec61850.com/libiec61850/
 
 CLion: https://www.jetbrains.com/clion/
 
+IEDScout: https://www.omicronenergy.com/en/products/iedscout/
+
+SmartGridware: http://www.smartgridware.com/index.html 
+
 SV publisher used for this server: https://github.com/hitfzyangdianshi/sv_publisher_used_for_my_server
 
 ## NOTE

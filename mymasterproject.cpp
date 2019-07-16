@@ -9,12 +9,12 @@
 
 #include "iec61850_server.h"
 #include "hal_thread.h" /* for Thread_sleep() */
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <pthread.h>
-#include <errno.h>
-#include<error.h>
+//#include <signal.h>
+//#include <stdlib.h>
+//#include <stdio.h>
+//#include <pthread.h>
+//#include <errno.h>
+//#include<error.h>
 #include <bits/stdc++.h>
 #include "static_model.h"
 #include "sv_subscriber.h"
@@ -80,6 +80,7 @@ struct GOOSEvaluemeas//MEAS
 
 MmsValue * mmsvaluestatus, *mmsvaluealarm, *mmsvaluemeas;
 uint32_t stnum901, stnum902,stnum903,    stnum901last, stnum902last, stnum903last;
+float *VA,*VB,*VC,*IA,*IB,*IC;
 
 void gooseListener(GooseSubscriber subscriber, void* parameter)
 {
@@ -113,9 +114,59 @@ void gooseListener(GooseSubscriber subscriber, void* parameter)
     }
 }
 
+void give_alarm_overcurrent(void* arg);
+void busbar_protection(void* arg){
+    give_alarm_overcurrent(nullptr);
+    cout<<"***\tbusbar_protection\t***\n";
+}
+
+float thresholdA=10*1.4143;
+void breaker_failure_protection(void* arg){
+
+    if ( (*VA>thresholdA || *VB >thresholdA || *VC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true)){
+        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
+               give_alarm_overcurrent(nullptr); //?
+        cout<<"***\tbreaker_failure_protection\t***\n";
+    }
+}
+
+void underfrequency_load_shedding(void* arg){
+    if (gomeas.hz<10){
+        Thread_sleep(4000);
+        if (gomeas.hz<10){
+            IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
+            cout<<"***\tunderfrequency_load_shedding\t***\n";
+        }
+    }
+}
+
+void check_status_for_XCBR_closed(void* arg){
+    if( gomeas.hz ==50 && *VA<=thresholdA && *VB <=thresholdA && *VC <= thresholdA ){
+        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
+        if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
+        IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
+        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)==0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
+        cout<<"##****\tXCBR_closed\t####"<<endl;
+    }
+}
+
+void monitor_other_IEDs_for_status(void* arg){
+    IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal, gostatus.XCBR_Pos);
+   // IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal, gostatus.XSWI_Pos);
+    //IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_PTRC_EEHealth_stVal,gostatus.PTRC_EEHealth);
+    IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Loc_stVal, gostatus.XCBR_Loc);
+    IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,goalarm.PIOC_Op_general);
+    IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t, Hal_getTimeInMs());
+    IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_PROT_XCBR_EEHealth_stVal,goalarm.XCBR_EEHealth);
+    /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_LPHD_PwrSupAlm_stVal,goalarm.LPHD_PwrSupAlm);
+    /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProTx_stVal, goalarm.PSCH_ProTx);
+    /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProRx_stVal, goalarm.PSCH_ProRx);
+    cout<<"***\t\tmonitor_other_IEDs_for_status\t\t***"<<endl;
+}
+
 #define subscribeGOOSEfromrealIEDstatus subscribeGOOSEfromrealIED
 void* subscribeGOOSEfromrealIED(void *arg)//subscribeGOOSEfromrealIEDstatus
-{
+{// add monitoring other IEDs 190716
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
@@ -174,6 +225,7 @@ void* subscribeGOOSEfromrealIED(void *arg)//subscribeGOOSEfromrealIEDstatus
     GooseReceiver_destroy(receiver);//GooseReceiver_destroy(receiver2);GooseReceiver_destroy(receiver3);
 
 }
+
 void* subscribeGOOSEfromrealIEDalarm(void *arg){
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
@@ -277,13 +329,13 @@ float datasv[10];
 static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscriber_ASDU asdu)
 {
     uint16_t appid=*(uint16_t*)parameter;
-    printf("svUpdateListener called\n");
+   // printf("svUpdateListener called\n");
     const char* svID = SVSubscriber_ASDU_getSvId(asdu);
-    if (svID != NULL)
+/*    if (svID != NULL)
         printf("  svID=(%s)\n", svID);
     printf("  smpCnt: %i\n", SVSubscriber_ASDU_getSmpCnt(asdu));
     printf("  confRev: %u\n", SVSubscriber_ASDU_getConfRev(asdu));
-    printf("  appID: %u\n", appid);
+    printf("  appID: %u\n", appid);*/
     /*
      * Access to the data requires a priori knowledge of the data set.
      * For this example we assume a data set consisting of FLOAT32 values.
@@ -295,9 +347,9 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
      * data block of the SV message before accessing the data.
      */
     if (SVSubscriber_ASDU_getDataSize(asdu) >= 8) {
-       if(appid==0x4001)     { printf(" 0x4001  DATA[0]: %f\n", datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
-       else if(appid==0x4002){ printf(" 0x4002  DATA[0]: %f\n", datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
-       else if(appid==0x4003){ printf(" 0x4003  DATA[0]: %f\n", datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+       if(appid==0x4001)     { /*printf(" 0x4001  DATA[0]: %f\n",*/ datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
+       else if(appid==0x4002){ /*printf(" 0x4002  DATA[0]: %f\n",*/ datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n", */datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
+       else if(appid==0x4003){ /*printf(" 0x4003  DATA[0]: %f\n",*/ datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
    }
 }
 
@@ -380,24 +432,28 @@ void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
     pass;
 }*/
 
-void give_alarm(void* arg){
-    float thresholdA=10;
+void give_alarm_overcurrent(void* arg){
+    float thresholdA=10*1.4143;
     //alarm PIOC instantaneous overcurrent
-    if( IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) >thresholdA ||IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_cVal_mag_f)>thresholdA
-        || IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) >thresholdA ||datasv[1]>thresholdA||datasv[3]>thresholdA|| datasv[5] > thresholdA){
+  //  if( IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) >thresholdA ||IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_cVal_mag_f)>thresholdA|| IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) >thresholdA ||datasv[1]>thresholdA||datasv[3]>thresholdA|| datasv[5] > thresholdA){
+    if (*VA>thresholdA || *VB >thresholdA || *VC > thresholdA){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,true);
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0b1010000000000);//reserved: overflow
         IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
-        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
-        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,1);//XSWI circuit switch
+        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
+    //    IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,1);//XSWI circuit switch
+    cout<<"***\tOVER CURRENT\t***"<<endl;
     }
+#define close_breaker_by_hand 1
+#if close_breaker_by_hand == 0
     else{
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
         if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
-        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
-        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,0);//XSWI circuit switch
+        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)==0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
+    //    if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal)!=0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,0);//XSWI circuit switch
     }
+#endif
   /*
     IEDMODEL_CTRL_XCBR_Pos_stVal                                        O
     IEDMODEL_CTRL_XSWI_Pos_stVal                                        O
@@ -406,7 +462,7 @@ void give_alarm(void* arg){
     IEDMODEL_PROT_LPHD_PwrSupAlm_stVal                                  X LPHD physical device informaiton, external power supply alarm
     IEDMODEL_PROT_PSCH_ProRx_stVal, IEDMODEL_PROT_PSCH_ProTx_stVal      X protection scheme, teleprotection signal received/transmitted
     IEDMODEL_PROT_XCBR_EEHealth_stVal                                   X circuit breaker, eehealth: external equipment health
-    * /
+    */
 }
 
 void * copy_GOOSEfrom_real_IED(){
@@ -512,9 +568,9 @@ void* update_MEAS_from_SV(){
     aa.push_front(Aa); ab.push_front(Ab); ac.push_front(Ac); va.push_front(PhVa);vb.push_front(PhVb); vc.push_front(PhVc);
    // accumulate(aa.front(),aa.back(),0);
     float aasum=0,absum=0,acsum=0,vasum=0,vbsum=0,vcsum=0, Pa=0, Pb=0, Pc=0, P,Sa, Sb, Sc, Qa, Qb, Qc, Q, phi;
-    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
-    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
-    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
+    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size(); VA=&vasum;IA=&aasum;
+    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();VB=&vbsum;IB=&absum;
+    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();VC=&vcsum;IC=&acsum;
    // for(int i=0; i<va.size();i++){vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}     vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
   //  for(int i=0; i<vb.size();i++){vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}     vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
  //   for(int i=0; i<vc.size();i++){vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}     vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
