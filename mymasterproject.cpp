@@ -78,9 +78,12 @@ struct GOOSEvaluemeas//MEAS
 #define MMXU_Hz_instMag_f__ hz
 #define MMXU_TotPF_instMag_f__ totpf
 
+#define pi M_PI
+
 MmsValue * mmsvaluestatus, *mmsvaluealarm, *mmsvaluemeas;
 uint32_t stnum901, stnum902,stnum903,    stnum901last, stnum902last, stnum903last;
-float *VA,*VB,*VC,*IA,*IB,*IC;
+float VA,VB,VC,IA,IB,IC;
+float datasv[10];
 
 void gooseListener(GooseSubscriber subscriber, void* parameter)
 {
@@ -114,40 +117,48 @@ void gooseListener(GooseSubscriber subscriber, void* parameter)
     }
 }
 
-void give_alarm_overcurrent(void* arg);
-void busbar_protection(void* arg){
-    give_alarm_overcurrent(nullptr);
-    cout<<"***\tbusbar_protection\t***\n";
+int give_alarm_overcurrent(void* arg);
+int busbar_protection(void* arg){
+    if(give_alarm_overcurrent(nullptr)==1) {
+        cout<< "***\tbusbar_protection\t***\"***\\tbusbar_protection\\t***\"***\\tbusbar_protection\\t***\"***\\tbusbar_protection\\t***\"***\\tbusbar_protection\\t***"<< endl;
+        return 1;
+    }
+    return 0;
 }
 
 float thresholdA=10*1.4143;
-void breaker_failure_protection(void* arg){
-
-    if ( (*VA>thresholdA || *VB >thresholdA || *VC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true)){
+int breaker_failure_protection(void* arg){
+    if ( (IA>thresholdA || IB >thresholdA || IC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true)){
         IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
                give_alarm_overcurrent(nullptr); //?
-        cout<<"***\tbreaker_failure_protection\t***\n";
+        cout<<"***\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t***"<<endl;
+        return 1;
     }
+    return 0;
 }
 
-void underfrequency_load_shedding(void* arg){
-    if (gomeas.hz<10){
-        Thread_sleep(4000);
-        if (gomeas.hz<10){
+int underfrequency_load_shedding(void* arg){
+    if (datasv[6]<10){
+        Thread_sleep(3000);
+        if (datasv[6]<10){
             IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
-            cout<<"***\tunderfrequency_load_shedding\t***\n";
+            cout<<"***\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t***"<<endl;
+        return 1;
         }
     }
+    return 0;
 }
 
-void check_status_for_XCBR_closed(void* arg){
-    if( gomeas.hz ==50 && *VA<=thresholdA && *VB <=thresholdA && *VC <= thresholdA ){
+int check_status_for_XCBR_closed(void* arg){
+    if( (datasv[6] -50)<5 && IA<=thresholdA && IB <=thresholdA && IC <= thresholdA ){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
         if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
         if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)==0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
-        cout<<"##****\tXCBR_closed\t####"<<endl;
+        cout<<"##****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t####"<<endl;
+        return 1;
     }
+    return 0;
 }
 
 void monitor_other_IEDs_for_status(void* arg){
@@ -161,7 +172,7 @@ void monitor_other_IEDs_for_status(void* arg){
     /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_LPHD_PwrSupAlm_stVal,goalarm.LPHD_PwrSupAlm);
     /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProTx_stVal, goalarm.PSCH_ProTx);
     /**/        IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PSCH_ProRx_stVal, goalarm.PSCH_ProRx);
-    cout<<"***\t\tmonitor_other_IEDs_for_status\t\t***"<<endl;
+   // cout<<"***\t\tmonitor_other_IEDs_for_status\t\t***"<<endl;
 }
 
 #define subscribeGOOSEfromrealIEDstatus subscribeGOOSEfromrealIED
@@ -325,7 +336,6 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
 };
 
 /* Callback handler for received SV messages */
-float datasv[10];
 static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscriber_ASDU asdu)
 {
     uint16_t appid=*(uint16_t*)parameter;
@@ -346,10 +356,11 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
      * To prevent damages due configuration, please check the length of the
      * data block of the SV message before accessing the data.
      */
-    if (SVSubscriber_ASDU_getDataSize(asdu) >= 8) {
+    if (SVSubscriber_ASDU_getDataSize(asdu) >= 4) {//8
        if(appid==0x4001)     { /*printf(" 0x4001  DATA[0]: %f\n",*/ datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
        else if(appid==0x4002){ /*printf(" 0x4002  DATA[0]: %f\n",*/ datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n", */datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
        else if(appid==0x4003){ /*printf(" 0x4003  DATA[0]: %f\n",*/ datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
+       else if(appid==5001)  { /*printf(" 5001  DATA[0]: %f\n",*/ datasv[6]=SVSubscriber_ASDU_getINT32(asdu, 0)/*)*/;}
    }
 }
 
@@ -358,31 +369,31 @@ void* subscribeSV(void *arg)
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
-    SVReceiver receiver1 = SVReceiver_create(); SVReceiver receiver2 = SVReceiver_create(); SVReceiver receiver3 = SVReceiver_create();
+    SVReceiver receiver1 = SVReceiver_create(); SVReceiver receiver2 = SVReceiver_create(); SVReceiver receiver3 = SVReceiver_create();SVReceiver receiverhz = SVReceiver_create();
   /*  if (argc > 1) {
         SVReceiver_setInterfaceId(receiver, argv[1]);
         printf("Set interface id: %s\n", argv[1]);
     }*/
   //  else {
         printf("SV subscriber: Using interface %s\n", interface);
-        SVReceiver_setInterfaceId(receiver1, interface);SVReceiver_setInterfaceId(receiver2, interface);SVReceiver_setInterfaceId(receiver3, interface);
+        SVReceiver_setInterfaceId(receiver1, interface);SVReceiver_setInterfaceId(receiver2, interface);SVReceiver_setInterfaceId(receiver3, interface);SVReceiver_setInterfaceId(receiverhz, interface);
   //  }
     /* Create a subscriber listening to SV messages with APPID 4000h */
-    uint16_t appid1=0x4001;uint16_t appid2=0x4002;uint16_t appid3=0x4003;
-    SVSubscriber subscriber1 = SVSubscriber_create(NULL, appid1);SVSubscriber subscriber2 = SVSubscriber_create(NULL, appid2);SVSubscriber subscriber3 = SVSubscriber_create(NULL, appid3);
+    uint16_t appid1=0x4001;uint16_t appid2=0x4002;uint16_t appid3=0x4003; uint16_t appidhz=5001;
+    SVSubscriber subscriber1 = SVSubscriber_create(NULL, appid1);SVSubscriber subscriber2 = SVSubscriber_create(NULL, appid2);SVSubscriber subscriber3 = SVSubscriber_create(NULL, appid3);SVSubscriber subscriberhz = SVSubscriber_create(NULL, appidhz);
     /* Install a callback handler for the subscriber */
-    SVSubscriber_setListener(subscriber1, svUpdateListener, (void*)&appid1); SVSubscriber_setListener(subscriber2, svUpdateListener, (void*)&appid2); SVSubscriber_setListener(subscriber3, svUpdateListener, (void*)&appid3);
+    SVSubscriber_setListener(subscriber1, svUpdateListener, (void*)&appid1); SVSubscriber_setListener(subscriber2, svUpdateListener, (void*)&appid2); SVSubscriber_setListener(subscriber3, svUpdateListener, (void*)&appid3);SVSubscriber_setListener(subscriberhz, svUpdateListener, (void*)&appidhz);
     /* Connect the subscriber to the receiver */
-    SVReceiver_addSubscriber(receiver1, subscriber1);SVReceiver_addSubscriber(receiver2, subscriber2);SVReceiver_addSubscriber(receiver3, subscriber3);
+    SVReceiver_addSubscriber(receiver1, subscriber1);SVReceiver_addSubscriber(receiver2, subscriber2);SVReceiver_addSubscriber(receiver3, subscriber3);SVReceiver_addSubscriber(receiverhz, subscriberhz);
     /* Start listening to SV messages - starts a new receiver background thread */
-    SVReceiver_start(receiver1);  SVReceiver_start(receiver2);  SVReceiver_start(receiver3);
+    SVReceiver_start(receiver1);  SVReceiver_start(receiver2);  SVReceiver_start(receiver3); SVReceiver_start(receiverhz);
     signal(SIGINT, sigint_handler);
     while (running)
         Thread_sleep(1);
     /* Stop listening to SV messages */
-    SVReceiver_stop(receiver1);SVReceiver_stop(receiver2);SVReceiver_stop(receiver3);
+    SVReceiver_stop(receiver1);SVReceiver_stop(receiver2);SVReceiver_stop(receiver3);SVReceiver_stop(receiverhz);
     /* Cleanup and free resources */
-    SVReceiver_destroy(receiver1);SVReceiver_destroy(receiver2);SVReceiver_destroy(receiver3);
+    SVReceiver_destroy(receiver1);SVReceiver_destroy(receiver2);SVReceiver_destroy(receiver3);SVReceiver_destroy(receiverhz);
 }
 
 void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
@@ -432,17 +443,18 @@ void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
     pass;
 }*/
 
-void give_alarm_overcurrent(void* arg){
-    float thresholdA=10*1.4143;
+int give_alarm_overcurrent(void* arg){
+   // float thresholdA=10*1.4143;
     //alarm PIOC instantaneous overcurrent
   //  if( IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) >thresholdA ||IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_cVal_mag_f)>thresholdA|| IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) >thresholdA ||datasv[1]>thresholdA||datasv[3]>thresholdA|| datasv[5] > thresholdA){
-    if (*VA>thresholdA || *VB >thresholdA || *VC > thresholdA){
+    if (IA>thresholdA || IB >thresholdA || IC > thresholdA){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,true);
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0b1010000000000);//reserved: overflow
         IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
         IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
     //    IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,1);//XSWI circuit switch
-    cout<<"***\tOVER CURRENT\t***"<<endl;
+        cout<<"***\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t***"<<endl;
+        return 1;
     }
 #define close_breaker_by_hand 1
 #if close_breaker_by_hand == 0
@@ -463,6 +475,7 @@ void give_alarm_overcurrent(void* arg){
     IEDMODEL_PROT_PSCH_ProRx_stVal, IEDMODEL_PROT_PSCH_ProTx_stVal      X protection scheme, teleprotection signal received/transmitted
     IEDMODEL_PROT_XCBR_EEHealth_stVal                                   X circuit breaker, eehealth: external equipment health
     */
+  return 0;
 }
 
 void * copy_GOOSEfrom_real_IED(){
@@ -557,59 +570,66 @@ copy_GOOSEfrom_real_IED_begin:
 }
 
 deque <float> aa,ab,ac,va,vb,vc;
-void* update_MEAS_from_SV(){
+int update_MEAS_from_SV(void* arg){
     /* Here I force to define 50Hz as the frequency */
 #define update_MEASurement_via_SV 1
 #if update_MEASurement_via_SV == 1
-#define HZ 50
+//#define HZ 50
+    int queuelength=100;
     float PhVa,Aa,PhVb, Ab, PhVc, Ac;
     Aa=datasv[1]; PhVa=datasv[0]; Ab=datasv[3]; PhVb=datasv[2]; Ac=datasv[5]; PhVc=datasv[4];
-    if(aa.size()==20)aa.pop_back();if(ab.size()==20)ab.pop_back();if(ac.size()==20)ac.pop_back();if(va.size()==20)va.pop_back();if(vb.size()==20)vb.pop_back();if(vc.size()==20)vc.pop_back();
+    if(aa.size()==queuelength)aa.pop_back();if(ab.size()==queuelength)ab.pop_back();if(ac.size()==queuelength)ac.pop_back();if(va.size()==queuelength)va.pop_back();if(vb.size()==queuelength)vb.pop_back();if(vc.size()==queuelength)vc.pop_back();
     aa.push_front(Aa); ab.push_front(Ab); ac.push_front(Ac); va.push_front(PhVa);vb.push_front(PhVb); vc.push_front(PhVc);
    // accumulate(aa.front(),aa.back(),0);
     float aasum=0,absum=0,acsum=0,vasum=0,vbsum=0,vcsum=0, Pa=0, Pb=0, Pc=0, P,Sa, Sb, Sc, Qa, Qb, Qc, Q, phi;
-    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size(); VA=&vasum;IA=&aasum;
-    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();VB=&vbsum;IB=&absum;
-    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();VC=&vcsum;IC=&acsum;
+    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size(); VA=vasum;IA=aasum;
+    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();VB=vbsum;IB=absum;
+    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();VC=vcsum;IC=acsum;
    // for(int i=0; i<va.size();i++){vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}     vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
   //  for(int i=0; i<vb.size();i++){vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}     vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
  //   for(int i=0; i<vc.size();i++){vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}     vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
     P=Pa+Pb+Pc;
-    Sa=aasum*vasum; Sb=vbsum*absum; Sc=vcsum*acsum;
-    Qa=sqrt(Sa*Sa-Pa*Pa); Qb=sqrt(Sb*Sb-Pb*Pb); Qc=sqrt(Sc*Sc-Pc*Pc); Q=Qa+Qb+Qc;
-    phi=atan(Q/P);
-    cout<<"P= "<<P<<"\tQ= "<<Q<<"\tphi= "<<phi<<endl;
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=aasum) {
+ //   P=sqrt(Pa*Pa+Pb*Pb+Pc*Pc);
+    Sa=VA*IA; Sb=VB*IB; Sc=VC*IC;
+    Qa=sqrt(fabs(Sa*Sa-Pa*Pa)); Qb=sqrt(fabs(Sb*Sb-Pb*Pb)); Qc=sqrt(fabs(Sc*Sc-Pc*Pc)); //Q=sqrt(Qa*Qa+Qb*Qb+Qc*Qc);//
+ //   cout<<Pa<<"\t"<<Pb<<"\t"<<Pc<<endl;
+ //   cout<<Qa<<"\t"<<Qb<<"\t"<<Qc<<endl; cout<<Sa<<"\t"<<Sb<<"\t"<<Sc<<endl;
+    Q=Qa+Qb+Qc;
+    phi=(atan(Q/P) /pi) *180;
+ //   cout<<"P= "<<P<<"\tQ= "<<Q<<"\tphi= "<<phi<<endl;
+ //   printf("%f\t%f\t%f\t\t\t%f\t%f\t%f\t\t%f\n\n",VA,VB,VC,IA,IB,IC,datasv[6]);
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=aasum) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,aasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=absum) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=absum) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,absum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=acsum) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=acsum) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,acsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
-    }//**********************************************
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=vasum) {
+//    }//**********************************************
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=vasum) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,vasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=vbsum) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=vbsum) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,vbsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=  vcsum ) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=  vcsum ) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,  vcsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
-    }//*************************************************************************************
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != P) {
+//    }//*************************************************************************************
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != P) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f, P);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != Q) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != Q) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,Q);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != HZ) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, HZ);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
-    }
-    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != cos(phi)) {
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != datasv[6]) {
+        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, datasv[6]);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != cos(phi)) {
         IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f, cos(phi));IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
-    }
+//    }
 #endif
+    return 0;
 }
 
 void* goosepublisherMAIN(void *arg){
@@ -618,7 +638,7 @@ void* goosepublisherMAIN(void *arg){
     iedServer = IedServer_create(&iedModel);
 //	if (argc > 1) {
     char* ethernetIfcID = para.interface;
-    ethernetIfcID="enp0s8";
+ //   ethernetIfcID="enp0s8";
     printf("GOOSE publisher: Using GOOSE interface: %s\n", ethernetIfcID);
     IedServer_setGooseInterfaceId(iedServer, ethernetIfcID);
     //}
@@ -642,15 +662,12 @@ void* goosepublisherMAIN(void *arg){
     /* Start GOOSE publishing */
     IedServer_enableGoosePublishing(iedServer);
     signal(SIGINT, sigint_handler);
-    float anIn1=0.1f;
+//    float anIn1=0.1f;
     while (running) {
         IedServer_lockDataModel(iedServer);
         /*       Timestamp ts;
                Timestamp_clearFlags(&ts);
                Timestamp_setTimeInMilliseconds(&ts, Hal_getTimeInMs());*/
-#ifdef gpincreasestnum
-        GoosePublisher_increaseStNum(publisher);
-#endif
         IedServer_unlockDataModel(iedServer);
         Thread_sleep(3);
     }
@@ -660,6 +677,13 @@ void* goosepublisherMAIN(void *arg){
     IedServer_destroy(iedServer);
 }
 
+void* run(void* arg){
+    monitor_other_IEDs_for_status(nullptr);
+    update_MEAS_from_SV(nullptr);
+    if (busbar_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
+    if (breaker_failure_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
+    if (underfrequency_load_shedding(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
+}
 
 int main(int argc, char** argv) {
     mmsvaluestatus=NULL; mmsvaluealarm=NULL;mmsvaluemeas=NULL;
@@ -667,18 +691,23 @@ int main(int argc, char** argv) {
     pthread_t thread[10];
     int t_id[10];
     struct fun_para_g parag[10];
-    for (int i =0;i<10;i++)parag[i].interface="enp0s8";
-  //  parag[0].interface="enp0s8";parag[1].interface="enp0s8";parag[2].interface="enp0s8";parag[3].interface="enp0s8";parag[4].interface="enp0s8";
+    if (argc > 1) {
+        for (int i = 0; i < 10; i++)parag[i].interface = argv[1];
+    }
+    else
+        for (int i = 0; i < 10; i++)parag[i].interface = "enp0s8";
 
     t_id [ 0 ] = pthread_create(&thread[0], NULL , goosepublisherMAIN , & parag [ 0 ] ) ;
     t_id [ 1 ] = pthread_create(&thread[1], NULL , subscribeGOOSEfromrealIED , & parag [ 1 ] ) ;
     t_id [ 2 ] = pthread_create(&thread[2], NULL , subscribeSV , & parag [ 2 ] ) ;
     t_id [ 3 ] = pthread_create(&thread[3], NULL , subscribeGOOSEfromrealIEDalarm , & parag [ 3 ] ) ;
     t_id [ 4 ] = pthread_create(&thread[4], NULL , subscribeGOOSEfromrealIEDmeas , & parag [ 4 ] ) ;
+ //   t_id [ 5 ] = pthread_create(&thread[5], NULL , run ,  & parag [ 5 ] ) ;
 
     pthread_join(thread[0], NULL ) ;
     pthread_join(thread[1], NULL ) ;
     pthread_join(thread[2], NULL ) ; pthread_join(thread[3], NULL ) ; pthread_join(thread[4], NULL ) ;
+ //   pthread_join(thread[5], NULL ) ;
 //  subscribeGOOSEfromrealIED(&parag[1]);
 
 
@@ -686,7 +715,9 @@ int main(int argc, char** argv) {
 } /* main() */
 
 
-
+#ifdef gpincreasestnum
+GoosePublisher_increaseStNum(publisher);
+#endif
 
 //   IedServer_updateTimestampAttributeValue(iedServer, IEDMODEL_MEAS_LLN0_Mod_t,&ts);
 
