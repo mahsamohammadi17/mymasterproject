@@ -128,7 +128,7 @@ int busbar_protection(void* arg){
 
 float thresholdA=10*1.4143;
 int breaker_failure_protection(void* arg){
-    if ( (IA>thresholdA || IB >thresholdA || IC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true)){
+    if ( (IA>thresholdA || IB >thresholdA || IC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true )){
         IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
                give_alarm_overcurrent(nullptr); //?
         cout<<"***\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t***"<<endl;
@@ -150,7 +150,7 @@ int underfrequency_load_shedding(void* arg){
 }
 
 int check_status_for_XCBR_closed(void* arg){
-    if( (datasv[6] -50)<5 && IA<=thresholdA && IB <=thresholdA && IC <= thresholdA ){
+    if( fabs(datasv[6] -50)<5 && IA<=thresholdA && IB <=thresholdA && IC <= thresholdA ){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
         if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
@@ -175,65 +175,173 @@ void monitor_other_IEDs_for_status(void* arg){
    // cout<<"***\t\tmonitor_other_IEDs_for_status\t\t***"<<endl;
 }
 
-#define subscribeGOOSEfromrealIEDstatus subscribeGOOSEfromrealIED
+deque <float> aa,ab,ac,va,vb,vc;
+int update_MEAS_from_SV(void* arg){
+    /* Here I force to define 50Hz as the frequency */
+#define update_MEASurement_via_SV 1
+#if update_MEASurement_via_SV == 1
+//#define HZ 50
+    int queuelength=100;
+    float PhVa,Aa,PhVb, Ab, PhVc, Ac;
+    Aa=datasv[1]; PhVa=datasv[0]; Ab=datasv[3]; PhVb=datasv[2]; Ac=datasv[5]; PhVc=datasv[4];
+    if(aa.size()==queuelength)aa.pop_back();if(ab.size()==queuelength)ab.pop_back();if(ac.size()==queuelength)ac.pop_back();if(va.size()==queuelength)va.pop_back();if(vb.size()==queuelength)vb.pop_back();if(vc.size()==queuelength)vc.pop_back();
+    aa.push_front(Aa); ab.push_front(Ab); ac.push_front(Ac); va.push_front(PhVa);vb.push_front(PhVb); vc.push_front(PhVc);
+    // accumulate(aa.front(),aa.back(),0);
+    float aasum=0,absum=0,acsum=0,vasum=0,vbsum=0,vcsum=0, Pa=0, Pb=0, Pc=0, P,Sa, Sb, Sc, Qa, Qb, Qc, Q, phi;
+    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size(); VA=vasum;IA=aasum;
+    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();VB=vbsum;IB=absum;
+    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();VC=vcsum;IC=acsum;
+    // for(int i=0; i<va.size();i++){vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}     vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
+    //  for(int i=0; i<vb.size();i++){vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}     vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
+    //   for(int i=0; i<vc.size();i++){vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}     vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
+    P=Pa+Pb+Pc;
+    //   P=sqrt(Pa*Pa+Pb*Pb+Pc*Pc);
+    Sa=VA*IA; Sb=VB*IB; Sc=VC*IC;
+    Qa=sqrt(fabs(Sa*Sa-Pa*Pa)); Qb=sqrt(fabs(Sb*Sb-Pb*Pb)); Qc=sqrt(fabs(Sc*Sc-Pc*Pc)); //Q=sqrt(Qa*Qa+Qb*Qb+Qc*Qc);//
+    //   cout<<Pa<<"\t"<<Pb<<"\t"<<Pc<<endl;
+    //   cout<<Qa<<"\t"<<Qb<<"\t"<<Qc<<endl; cout<<Sa<<"\t"<<Sb<<"\t"<<Sc<<endl;
+    Q=Qa+Qb+Qc;
+    phi=(atan(Q/P) /pi) *180;
+    //   cout<<"P= "<<P<<"\tQ= "<<Q<<"\tphi= "<<phi<<endl;
+    //   printf("%f\t%f\t%f\t\t\t%f\t%f\t%f\t\t%f\n\n",VA,VB,VC,IA,IB,IC,datasv[6]);
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=aasum) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,aasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=absum) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,absum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=acsum) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,acsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
+//    }//**********************************************
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=vasum) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,vasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=vbsum) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,vbsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=  vcsum ) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,  vcsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
+//    }//*************************************************************************************
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != P) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f, P);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != Q) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,Q);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != datasv[6]) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, datasv[6]);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
+//    }
+//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != cos(phi)) {
+    IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f, cos(phi));IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
+//    }
+#endif
+    return 0;
+}
+
 void* subscribeGOOSEfromrealIED(void *arg)//subscribeGOOSEfromrealIEDstatus
 {// add monitoring other IEDs 190716
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
     char * interface=para.interface;
 
-    GooseReceiver receiver = GooseReceiver_create();//GooseReceiver receiver2 = GooseReceiver_create();GooseReceiver receiver3= GooseReceiver_create();
- /*   if (argc > 1) {
-        printf("Set interface id: %s\n", argv[1]);
-        GooseReceiver_setInterfaceId(receiver, argv[1]);
-    }
-    else {*/
-        printf("Goose receiver 901: Using interface %s \n", interface);
-        GooseReceiver_setInterfaceId(receiver,interface);//GooseReceiver_setInterfaceId(receiver2, "enp0s8");GooseReceiver_setInterfaceId(receiver3, "enp0s8");
-  //  }
+    GooseReceiver receiver = GooseReceiver_create();GooseReceiver receiver2 = GooseReceiver_create();GooseReceiver receiver3= GooseReceiver_create();
+
+    printf("Goose receiver  : Using interface %s \n", interface);
+    GooseReceiver_setInterfaceId(receiver,interface);GooseReceiver_setInterfaceId(receiver2, interface);GooseReceiver_setInterfaceId(receiver3, interface);
 
     GooseSubscriber subscriber = GooseSubscriber_create("LIED20CTRL/LLN0$GO$Status", NULL);
- //   GooseSubscriber subscriber2 = GooseSubscriber_create("LIED20PROT/LLN0$GO$Alarm", NULL);
- //   GooseSubscriber subscriber3 = GooseSubscriber_create("LIED20MEAS/LLN0$GO$Meas", NULL);
-  //  void *ch=NULL;
-    uint16_t appid=901;uint16_t *appidp;appidp=&appid;
-    GooseSubscriber_setAppId(subscriber, appid); //GooseSubscriber_setAppId(subscriber2, 902); GooseSubscriber_setAppId(subscriber3, 903);
-    GooseSubscriber_setListener(subscriber, gooseListener, (void*)appidp);//GooseSubscriber_setListener(subscriber2, gooseListener, NULL);GooseSubscriber_setListener(subscriber3, gooseListener, NULL);
-    GooseReceiver_addSubscriber(receiver, subscriber);//GooseReceiver_addSubscriber(receiver2, subscriber);GooseReceiver_addSubscriber(receiver3, subscriber);
-    GooseReceiver_start(receiver);//GooseReceiver_start(receiver2);GooseReceiver_start(receiver3);
+    GooseSubscriber subscriber2 = GooseSubscriber_create("LIED20PROT/LLN0$GO$Alarm", NULL);
+    GooseSubscriber subscriber3 = GooseSubscriber_create("LIED20MEAS/LLN0$GO$Meas", NULL);
+
+    uint16_t appid1=901, appid2=902, appid3=903;
+    GooseSubscriber_setAppId(subscriber, appid1); GooseSubscriber_setAppId(subscriber2, appid2); GooseSubscriber_setAppId(subscriber3, appid3);
+    GooseSubscriber_setListener(subscriber, gooseListener, (void*)(&appid1));GooseSubscriber_setListener(subscriber2, gooseListener, (void*)(&appid2));GooseSubscriber_setListener(subscriber3, gooseListener, (void*)(&appid3));
+    GooseReceiver_addSubscriber(receiver, subscriber);GooseReceiver_addSubscriber(receiver2, subscriber2);GooseReceiver_addSubscriber(receiver3, subscriber3);
+    GooseReceiver_start(receiver);GooseReceiver_start(receiver2);GooseReceiver_start(receiver3);
     signal(SIGINT, sigint_handler);
     while (running) {
-        Thread_sleep(3);
+    //    Thread_sleep(3);
         if (mmsvaluestatus!=NULL){
-        try
-        {
+            try
+            {
           //  printf("%s\n", MmsValue_getOctetStringBuffer(mmsvaluestatus));
-            char buffer[1024];
-            MmsValue_printToBuffer(mmsvaluestatus, buffer, 1024);
-            string buffers=buffer;
-       //     cout<<"string: "<<buffers<<endl;
-            buffers=buffers.substr(1,buffers.length()-2);
-            memset(buffer,'\0',sizeof(buffer));
-            strcpy(buffer,buffers.c_str());
-        //    printf("buffer: %s\n",buffer);
-            char *delim=",";
-            char *p;
-            gostatus.XCBR_Pos= atoi(strtok(buffer,delim));
-            gostatus.XSWI_Pos= atoi(strtok(NULL,delim));gostatus.XSWI_Pos2=atoi(strtok(NULL,delim));
-            gostatus.PTRC_EEHealth= atoi(strtok(NULL,delim));
-            gostatus.XCBR_Loc= strcmp(strtok(NULL,delim),"true")==0;
-          //  cout<<gostatus.XCBR_Pos<< gostatus.XSWI_Pos<<gostatus.XSWI_Pos2<< gostatus.PTRC_EEHealth<<boolalpha<<gostatus.XCBR_Loc<<endl;
+                char buffer[1024];
+                MmsValue_printToBuffer(mmsvaluestatus, buffer, 1024);
+                string buffers=buffer;
+           //     cout<<"string: "<<buffers<<endl;
+                buffers=buffers.substr(1,buffers.length()-2);
+                memset(buffer,'\0',sizeof(buffer));
+                strcpy(buffer,buffers.c_str());
+            //    printf("buffer: %s\n",buffer);
+                char *delim=",";
+                char *p;
+                gostatus.XCBR_Pos= atoi(strtok(buffer,delim));
+                gostatus.XSWI_Pos= atoi(strtok(NULL,delim));gostatus.XSWI_Pos2=atoi(strtok(NULL,delim));
+                gostatus.PTRC_EEHealth= atoi(strtok(NULL,delim));
+                gostatus.XCBR_Loc= strcmp(strtok(NULL,delim),"true")==0;
+          //      cout<<gostatus.XCBR_Pos<< gostatus.XSWI_Pos<<gostatus.XSWI_Pos2<< gostatus.PTRC_EEHealth<<boolalpha<<gostatus.XCBR_Loc<<endl;
+            }
+            catch (...)
+            {
+                printf("*********************************\n");
+                continue;
+            }
         }
-        catch (...)
-        {
-           printf("*********************************\n");
-           continue;
+        if (mmsvaluealarm!=NULL) {
+            try {
+                char buffer[1024];
+                MmsValue_printToBuffer(mmsvaluealarm, buffer, 1024);
+                string buffers = buffer;
+                //      cout<<"string: "<<buffers<<endl;
+                buffers = buffers.substr(1, buffers.length() - 2);
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, buffers.c_str());
+                //       printf("buffer: %s\n",buffer);
+                char *delim = ",";
+                char *p;
+                goalarm.PIOC_Op_general = strcmp(strtok(buffer, delim), "true") == 0;
+                goalarm.XCBR_EEHealth = atoi(strtok(NULL, delim));
+                goalarm.LPHD_PwrSupAlm = strcmp(strtok(NULL, delim), "true") == 0;
+                goalarm.PSCH_ProTx = strcmp(strtok(NULL, delim), "true") == 0;
+                goalarm.PSCH_ProRx = strcmp(strtok(NULL, delim), "true") == 0;
+          //          cout<<boolalpha<<goalarm.PIOC_Op_general<<noboolalpha<< goalarm.XCBR_EEHealth<<boolalpha<< goalarm.LPHD_PwrSupAlm<< goalarm.PSCH_ProTx<<goalarm.PSCH_ProRx<<endl;
+            }
+            catch (...) {
+                printf("111122222222222222222222112\n");
+                continue;
+            }
         }
+        if (mmsvaluemeas!=NULL){
+            try
+            {
+                char buffer[1024];
+                MmsValue_printToBuffer(mmsvaluemeas, buffer, 1024);
+                string buffers=buffer;
+                //     cout<<"string: "<<buffers<<endl;
+                buffers=buffers.substr(1,buffers.length()-2);
+                memset(buffer,'\0',sizeof(buffer));
+                strcpy(buffer,buffers.c_str());
+                //       printf("buffer: %s\n",buffer);
+                char *delim=",";
+                char *p;
+                gomeas.aphsa= (float)atof(strtok(buffer,delim));gomeas.aphsb=(float) atof(strtok(NULL,delim));gomeas.aphsc=(float)atof(strtok(NULL,delim));
+                gomeas.phva= (float)atof(strtok(NULL,delim));gomeas.phvb=(float)atof(strtok(NULL,delim));gomeas.phvc=(float)atof(strtok(NULL,delim));
+                gomeas.totw=(float)atof(strtok(NULL,delim));
+                gomeas.totvar=(float)atof(strtok(NULL,delim));
+                gomeas.hz=(float)atof(strtok(NULL,delim));
+                gomeas.totpf=(float)atof(strtok(NULL,delim));
+      //            cout<<gomeas.aphsa<<gomeas.aphsb<< gomeas.aphsc<<gomeas.phva<< gomeas.phvb<< gomeas.phvc<<gomeas.totw<<gomeas.totvar<<gomeas.hz<< gomeas.totpf<<endl;
+            }
+            catch (...)
+            {
+                printf("3333333333333333333333333333333333\n");
+                continue;
+            }
         }
 
     }
-    GooseReceiver_stop(receiver);//GooseReceiver_stop(receiver2);GooseReceiver_stop(receiver3);
-    GooseReceiver_destroy(receiver);//GooseReceiver_destroy(receiver2);GooseReceiver_destroy(receiver3);
+    GooseReceiver_stop(receiver);GooseReceiver_stop(receiver2);GooseReceiver_stop(receiver3);
+    GooseReceiver_destroy(receiver);GooseReceiver_destroy(receiver2);GooseReceiver_destroy(receiver3);
 
 }
 
@@ -360,7 +468,7 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
        if(appid==0x4001)     { /*printf(" 0x4001  DATA[0]: %f\n",*/ datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
        else if(appid==0x4002){ /*printf(" 0x4002  DATA[0]: %f\n",*/ datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n", */datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
        else if(appid==0x4003){ /*printf(" 0x4003  DATA[0]: %f\n",*/ datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
-       else if(appid==5001)  { /*printf(" 5001  DATA[0]: %f\n",*/ datasv[6]=SVSubscriber_ASDU_getINT32(asdu, 0)/*)*/;}
+       else if(appid==5001)  { /*printf(" 5001  DATA[0]: %f\n",*/datasv[6]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;}
    }
 }
 
@@ -389,7 +497,7 @@ void* subscribeSV(void *arg)
     SVReceiver_start(receiver1);  SVReceiver_start(receiver2);  SVReceiver_start(receiver3); SVReceiver_start(receiverhz);
     signal(SIGINT, sigint_handler);
     while (running)
-        Thread_sleep(1);
+        Thread_sleep(5);
     /* Stop listening to SV messages */
     SVReceiver_stop(receiver1);SVReceiver_stop(receiver2);SVReceiver_stop(receiver3);SVReceiver_stop(receiverhz);
     /* Cleanup and free resources */
@@ -569,68 +677,7 @@ copy_GOOSEfrom_real_IED_begin:
 #endif
 }
 
-deque <float> aa,ab,ac,va,vb,vc;
-int update_MEAS_from_SV(void* arg){
-    /* Here I force to define 50Hz as the frequency */
-#define update_MEASurement_via_SV 1
-#if update_MEASurement_via_SV == 1
-//#define HZ 50
-    int queuelength=100;
-    float PhVa,Aa,PhVb, Ab, PhVc, Ac;
-    Aa=datasv[1]; PhVa=datasv[0]; Ab=datasv[3]; PhVb=datasv[2]; Ac=datasv[5]; PhVc=datasv[4];
-    if(aa.size()==queuelength)aa.pop_back();if(ab.size()==queuelength)ab.pop_back();if(ac.size()==queuelength)ac.pop_back();if(va.size()==queuelength)va.pop_back();if(vb.size()==queuelength)vb.pop_back();if(vc.size()==queuelength)vc.pop_back();
-    aa.push_front(Aa); ab.push_front(Ab); ac.push_front(Ac); va.push_front(PhVa);vb.push_front(PhVb); vc.push_front(PhVc);
-   // accumulate(aa.front(),aa.back(),0);
-    float aasum=0,absum=0,acsum=0,vasum=0,vbsum=0,vcsum=0, Pa=0, Pb=0, Pc=0, P,Sa, Sb, Sc, Qa, Qb, Qc, Q, phi;
-    for(int i=0; i<aa.size();i++){aasum=aasum+pow(aa[i],2);  vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}   aasum=sqrt(aasum/(aa.size()+0.000));vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size(); VA=vasum;IA=aasum;
-    for(int i=0; i<ab.size();i++){absum=absum+pow(ab[i],2);  vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}   absum=sqrt(absum/(ab.size()+0.000));vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();VB=vbsum;IB=absum;
-    for(int i=0; i<ac.size();i++){acsum=acsum+pow(ac[i],2);  vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}   acsum=sqrt(acsum/(ac.size()+0.000)); vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();VC=vcsum;IC=acsum;
-   // for(int i=0; i<va.size();i++){vasum=vasum+pow(va[i],2); Pa=Pa+aa[i]*va[i];}     vasum=sqrt(vasum/(va.size()+0.000)); Pa=Pa/va.size();
-  //  for(int i=0; i<vb.size();i++){vbsum=vbsum+pow(vb[i],2); Pb=Pb+ab[i]*vb[i];}     vbsum=sqrt(vbsum/(vb.size()+0.000)); Pb=Pb/vb.size();
- //   for(int i=0; i<vc.size();i++){vcsum=vcsum+pow(vc[i],2); Pc=Pc+ac[i]*vc[i];}     vcsum=sqrt(vcsum/(vc.size()+0.000)); Pc=Pc/vc.size();
-    P=Pa+Pb+Pc;
- //   P=sqrt(Pa*Pa+Pb*Pb+Pc*Pc);
-    Sa=VA*IA; Sb=VB*IB; Sc=VC*IC;
-    Qa=sqrt(fabs(Sa*Sa-Pa*Pa)); Qb=sqrt(fabs(Sb*Sb-Pb*Pb)); Qc=sqrt(fabs(Sc*Sc-Pc*Pc)); //Q=sqrt(Qa*Qa+Qb*Qb+Qc*Qc);//
- //   cout<<Pa<<"\t"<<Pb<<"\t"<<Pc<<endl;
- //   cout<<Qa<<"\t"<<Qb<<"\t"<<Qc<<endl; cout<<Sa<<"\t"<<Sb<<"\t"<<Sc<<endl;
-    Q=Qa+Qb+Qc;
-    phi=(atan(Q/P) /pi) *180;
- //   cout<<"P= "<<P<<"\tQ= "<<Q<<"\tphi= "<<phi<<endl;
- //   printf("%f\t%f\t%f\t\t\t%f\t%f\t%f\t\t%f\n\n",VA,VB,VC,IA,IB,IC,datasv[6]);
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f) !=aasum) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,aasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f) !=absum) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,absum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f) !=acsum) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,acsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
-//    }//**********************************************
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f) !=vasum) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,vasum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f) !=vbsum) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,vbsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f) !=  vcsum ) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,  vcsum);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
-//    }//*************************************************************************************
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f) != P) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_instMag_f, P);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f) != Q) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,Q);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f) != datasv[6]) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_instMag_f, datasv[6]);IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
-//    }
-//    if (IedServer_getFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f) != cos(phi)) {
-        IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_instMag_f, cos(phi));IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
-//    }
-#endif
-    return 0;
-}
+
 
 void* goosepublisherMAIN(void *arg){
     struct fun_para_g para;
@@ -665,9 +712,10 @@ void* goosepublisherMAIN(void *arg){
 //    float anIn1=0.1f;
     while (running) {
         IedServer_lockDataModel(iedServer);
-        /*       Timestamp ts;
-               Timestamp_clearFlags(&ts);
-               Timestamp_setTimeInMilliseconds(&ts, Hal_getTimeInMs());*/
+
+        monitor_other_IEDs_for_status(nullptr);
+        update_MEAS_from_SV(nullptr);
+
         IedServer_unlockDataModel(iedServer);
         Thread_sleep(3);
     }
@@ -677,12 +725,31 @@ void* goosepublisherMAIN(void *arg){
     IedServer_destroy(iedServer);
 }
 
-void* run(void* arg){
-    monitor_other_IEDs_for_status(nullptr);
-    update_MEAS_from_SV(nullptr);
-    if (busbar_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
-    if (breaker_failure_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
-    if (underfrequency_load_shedding(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
+void* run1(void* arg){
+//    monitor_other_IEDs_for_status(nullptr);
+//    update_MEAS_from_SV(nullptr);
+    while(running)
+        if (busbar_protection(nullptr) == 1)
+            while (1) {
+                Thread_sleep(2000);
+                if (breaker_failure_protection(nullptr) == 1)
+                    while (1) {
+                        Thread_sleep(2);
+                        if (check_status_for_XCBR_closed(nullptr) == 1)
+                            break;
+                    }
+                if (check_status_for_XCBR_closed(nullptr) == 1)break;
+            }
+}
+/*
+void* run2(void* arg){
+    while(running)
+        if (breaker_failure_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
+}*/
+
+void* run3(void* arg){
+    while(running)
+        if (underfrequency_load_shedding(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
 }
 
 int main(int argc, char** argv) {
@@ -700,78 +767,19 @@ int main(int argc, char** argv) {
     t_id [ 0 ] = pthread_create(&thread[0], NULL , goosepublisherMAIN , & parag [ 0 ] ) ;
     t_id [ 1 ] = pthread_create(&thread[1], NULL , subscribeGOOSEfromrealIED , & parag [ 1 ] ) ;
     t_id [ 2 ] = pthread_create(&thread[2], NULL , subscribeSV , & parag [ 2 ] ) ;
-    t_id [ 3 ] = pthread_create(&thread[3], NULL , subscribeGOOSEfromrealIEDalarm , & parag [ 3 ] ) ;
-    t_id [ 4 ] = pthread_create(&thread[4], NULL , subscribeGOOSEfromrealIEDmeas , & parag [ 4 ] ) ;
- //   t_id [ 5 ] = pthread_create(&thread[5], NULL , run ,  & parag [ 5 ] ) ;
+    t_id [ 3 ] = pthread_create(&thread[3], NULL , run1 , & parag [ 3 ] ) ;
+ //   t_id [ 4 ] = pthread_create(&thread[4], NULL , run2 , & parag [ 4 ] ) ;
+    t_id [ 5 ] = pthread_create(&thread[5], NULL , run3 ,  & parag [ 5 ] ) ;
 
     pthread_join(thread[0], NULL ) ;
     pthread_join(thread[1], NULL ) ;
-    pthread_join(thread[2], NULL ) ; pthread_join(thread[3], NULL ) ; pthread_join(thread[4], NULL ) ;
- //   pthread_join(thread[5], NULL ) ;
+    pthread_join(thread[2], NULL ) ;
+    pthread_join(thread[3], NULL ) ;
+//    pthread_join(thread[4], NULL ) ;
+    pthread_join(thread[5], NULL ) ;
 //  subscribeGOOSEfromrealIED(&parag[1]);
 
 
     return 0;
 } /* main() */
 
-
-#ifdef gpincreasestnum
-GoosePublisher_increaseStNum(publisher);
-#endif
-
-//   IedServer_updateTimestampAttributeValue(iedServer, IEDMODEL_MEAS_LLN0_Mod_t,&ts);
-
-/*  IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_CTRL_LLN0_Beh_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_CTRL_LLN0_Health_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_CTRL_LLN0_LEDRs_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_CTRL_LLN0_Loc_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_CTRL_LLN0_Mod_t,Hal_getTimeInMs());
-
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_LLN0_Beh_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_LLN0_Health_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_LLN0_Mod_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_LLN0_OpTmh_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_PROT_PTOC_Op_t,Hal_getTimeInMs());
-
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_LLN0_Beh_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_LLN0_Health_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_LLN0_Mod_t,Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_Mod_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_Beh_t, Hal_getTimeInMs());////
-  IedServer_updateUTCTimeAttributeValue(iedServer,      IEDMODEL_MEAS_MMXU_TotW_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,       IEDMODEL_MEAS_MMXU_TotVAr_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,       IEDMODEL_MEAS_MMXU_TotVA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,    IEDMODEL_MEAS_MMXU_TotPF_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,     IEDMODEL_MEAS_MMXU_Hz_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,   IEDMODEL_MEAS_MMXU_PPV_phsAB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,     IEDMODEL_MEAS_MMXU_PPV_phsBC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PPV_phsCA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PhV_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PhV_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PhV_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PhV_res_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_A_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_A_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_A_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_A_neut_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_A_res_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_W_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_W_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_W_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_VAr_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_VAr_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_VAr_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_VA_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_VA_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_VA_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PF_phsA_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,        IEDMODEL_MEAS_MMXU_PF_phsB_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,    IEDMODEL_MEAS_MMXU_PF_phsC_t, Hal_getTimeInMs());
-  IedServer_updateUTCTimeAttributeValue(iedServer,  IEDMODEL_MEAS_MMXU_Health_t, Hal_getTimeInMs());*/
-
-
-
-
-//printf("%ld\n",Hal_getTimeInMs());
-//   IedServer_updateFloatAttributeValue(iedServer, IEDMODEL_GenericIO_GGIO1_AnIn1_mag_f, anIn1);
