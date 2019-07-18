@@ -7328,4 +7328,16 @@ initializeValues()
     iedModel_PROT_LPHD_PwrSupAlm_stVal.mmsValue=MmsValue_newBoolean(false);
     iedModel_PROT_PSCH_ProTx_stVal.mmsValue=MmsValue_newBoolean(false);
     iedModel_PROT_PSCH_ProRx_stVal.mmsValue=MmsValue_newBoolean(false);
+
+    iedModel_CTRL_XCBR_Pos_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_CTRL_XSWI_Pos_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_CTRL_PTRC_EEHealth_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_CTRL_XCBR_Loc_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+
+    iedModel_PROT_PIOC_Op_general.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_PROT_XCBR_EEHealth_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_PROT_LPHD_PwrSupAlm_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_PROT_PSCH_ProTx_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+    iedModel_PROT_PSCH_ProRx_stVal.triggerOptions=TRG_OPT_DATA_CHANGED;
+
 }
