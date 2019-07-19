@@ -39,6 +39,7 @@ void sigint_handler(int signalId)
 struct fun_para_g
 {
     char * interface;
+    int portnumber;
  //   uint16_t appid;
 
 };
@@ -685,12 +686,13 @@ void* goosepublisherMAIN(void *arg){
     iedServer = IedServer_create(&iedModel);
 //	if (argc > 1) {
     char* ethernetIfcID = para.interface;
+    int portnumber=para.portnumber;
  //   ethernetIfcID="enp0s8";
-    printf("GOOSE publisher: Using GOOSE interface: %s\n", ethernetIfcID);
+    printf("GOOSE publisher: Using GOOSE interface: %s , port: %d \n", ethernetIfcID,portnumber);
     IedServer_setGooseInterfaceId(iedServer, ethernetIfcID);
     //}
     /* MMS server will be instructed to start listening to client connections. */
-    IedServer_start(iedServer, 1103);
+    IedServer_start(iedServer, portnumber);
     //IedServer_setControlHandler(iedServer, IEDMODEL_CTRL_LLN0, (ControlHandler) controlHandlerForBinaryOutput,    IEDMODEL_CTRL_LLN0);
 
     /*IedServer_setControlHandler(iedServer, IEDMODEL_CTRL_SPDOesGGIO1_SPCSO, (ControlHandler) controlHandlerForBinaryOutput,
@@ -759,10 +761,16 @@ int main(int argc, char** argv) {
     int t_id[10];
     struct fun_para_g parag[10];
     if (argc > 1) {
-        for (int i = 0; i < 10; i++)parag[i].interface = argv[1];
+        for (int i = 0; i < 10; i++){
+            parag[i].interface = argv[1];
+            parag[i].portnumber=atoi(argv[2]);
+        }
     }
     else
-        for (int i = 0; i < 10; i++)parag[i].interface = "enp0s8";
+        for (int i = 0; i < 10; i++){
+            parag[i].interface = "enp0s8";
+            parag[i].portnumber=5001;
+        }
 
     t_id [ 0 ] = pthread_create(&thread[0], NULL , goosepublisherMAIN , & parag [ 0 ] ) ;
     t_id [ 1 ] = pthread_create(&thread[1], NULL , subscribeGOOSEfromrealIED , & parag [ 1 ] ) ;
