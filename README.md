@@ -3,7 +3,7 @@ my master project
 
 test in Ubuntu 18.04
 
-library: **libiec61850**
+library: **libiec61850** (1.3.3)       
 https://libiec61850.com/libiec61850/
 
 CLion: https://www.jetbrains.com/clion/
