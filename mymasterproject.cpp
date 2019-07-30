@@ -127,7 +127,7 @@ int busbar_protection(void* arg){
     return 0;
 }
 
-float thresholdA=10*1.4143;
+float thresholdA=10.5*sqrt(2);
 int breaker_failure_protection(void* arg){
     if ( (IA>thresholdA || IB >thresholdA || IC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true )){
         IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
