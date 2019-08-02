@@ -1,1 +1,1 @@
-/usr/bin/c++   -std=c++11 -g  -rdynamic CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o CMakeFiles/mymasterproject.dir/static_model.c.o  -o mymasterproject -liec61850 -pthread 
+/usr/bin/c++   -std=c++11 -Wno-narrowing -g  -rdynamic CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o CMakeFiles/mymasterproject.dir/static_model.c.o CMakeFiles/mymasterproject.dir/shared_parameters.cpp.o  -o mymasterproject -liec61850 -pthread 

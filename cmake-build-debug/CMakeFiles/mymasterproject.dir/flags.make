@@ -9,7 +9,7 @@ C_DEFINES =
 
 C_INCLUDES = -I/home/d/mymasterproject/. 
 
-CXX_FLAGS =  -std=c++11 -g   -pthread
+CXX_FLAGS =  -std=c++11 -Wno-narrowing -g   -pthread
 
 CXX_DEFINES = 
 

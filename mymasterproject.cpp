@@ -25,7 +25,7 @@
 #define pass return
 #define do_nothing ;
 using namespace std;
-
+#include "shared_parameters.cpp"
 /* import IEC 61850 device model created from SCL-File */
 extern IedModel iedModel;
 static int running = 0;
@@ -40,9 +40,10 @@ struct fun_para_g
 {
     char * interface;
     int portnumber;
- //   uint16_t appid;
+    //   uint16_t appid;
 
 };
+
 
 struct GOOSEvaluestatus//CTRL
 {
@@ -753,31 +754,41 @@ void* run3(void* arg){
     while(running)
         if (underfrequency_load_shedding(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
 }
-
+#include "iec61850_common.h"
+#include "stack_config.h"
+#include "goose_publisher.h"
+PhyComAddress addr1;//={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,1001+ (int)parag[1].portnumber, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
+PhyComAddress addr2;//={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,1002+parag[0].portnumber, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
+PhyComAddress addr3;//={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,1003+parag[0].portnumber, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
+fun_para_g parag[10];
 int main(int argc, char** argv) {
     mmsvaluestatus=NULL; mmsvaluealarm=NULL;mmsvaluemeas=NULL;
     running = 1;
     pthread_t thread[10];
     int t_id[10];
-    struct fun_para_g parag[10];
+    //struct fun_para_g parag[10];
     if (argc > 1) {
         for (int i = 0; i < 10; i++){
             parag[i].interface = argv[1];
             parag[i].portnumber=atoi(argv[2]);
         }
     }
-    else
-        for (int i = 0; i < 10; i++){
+    else {
+        for (int i = 0; i < 10; i++) {
             parag[i].interface = "enp0s8";
-            parag[i].portnumber=5001;
+            parag[i].portnumber = 5001;
         }
-
+    }
+    uint16_t appidadd=(uint16_t) ( parag[0].portnumber%5000+UINT_MAX+1);
+    addr1={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,901+appidadd*3, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
+    addr2={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,902+appidadd*3, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
+    addr3={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,903+appidadd*3, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x00}};
     t_id [ 0 ] = pthread_create(&thread[0], NULL , goosepublisherMAIN , & parag [ 0 ] ) ;
     t_id [ 1 ] = pthread_create(&thread[1], NULL , subscribeGOOSEfromrealIED , & parag [ 1 ] ) ;
     t_id [ 2 ] = pthread_create(&thread[2], NULL , subscribeSV , & parag [ 2 ] ) ;
     t_id [ 3 ] = pthread_create(&thread[3], NULL , run1 , & parag [ 3 ] ) ;
  //   t_id [ 4 ] = pthread_create(&thread[4], NULL , run2 , & parag [ 4 ] ) ;
-    t_id [ 5 ] = pthread_create(&thread[5], NULL , run3 ,  & parag [ 5 ] ) ;
+   // t_id [ 5 ] = pthread_create(&thread[5], NULL , run3 ,  & parag [ 5 ] ) ;
 
     pthread_join(thread[0], NULL ) ;
     pthread_join(thread[1], NULL ) ;

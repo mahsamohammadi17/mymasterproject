@@ -5,7 +5,7 @@ include_directories(
 set(mymasterproject_SRCS
         mymasterproject.cpp
         static_model.c
-)
+        shared_parameters.cpp)
 
 IF(WIN32)
 set_source_files_properties(${mymasterproject_SRCS}
@@ -24,6 +24,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(mymasterproject Threads::Threads)
 
 cmake_minimum_required(VERSION 3.6) #this can be changed
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") #this version can also be changed
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-narrowing") #this version can also be changed
 set (CMAKE_C_STANDARD 11)  #
 set(CMAKE_CXX_STANDARD 11)  #

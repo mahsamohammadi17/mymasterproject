@@ -150,6 +150,33 @@ mymasterproject.cpp.s:
 	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/mymasterproject.cpp.s
 .PHONY : mymasterproject.cpp.s
 
+shared_parameters.o: shared_parameters.cpp.o
+
+.PHONY : shared_parameters.o
+
+# target to build an object file
+shared_parameters.cpp.o:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/shared_parameters.cpp.o
+.PHONY : shared_parameters.cpp.o
+
+shared_parameters.i: shared_parameters.cpp.i
+
+.PHONY : shared_parameters.i
+
+# target to preprocess a source file
+shared_parameters.cpp.i:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/shared_parameters.cpp.i
+.PHONY : shared_parameters.cpp.i
+
+shared_parameters.s: shared_parameters.cpp.s
+
+.PHONY : shared_parameters.s
+
+# target to generate assembly for a file
+shared_parameters.cpp.s:
+	$(MAKE) -f CMakeFiles/mymasterproject.dir/build.make CMakeFiles/mymasterproject.dir/shared_parameters.cpp.s
+.PHONY : shared_parameters.cpp.s
+
 static_model.o: static_model.c.o
 
 .PHONY : static_model.o
@@ -189,6 +216,9 @@ help:
 	@echo "... mymasterproject.o"
 	@echo "... mymasterproject.i"
 	@echo "... mymasterproject.s"
+	@echo "... shared_parameters.o"
+	@echo "... shared_parameters.i"
+	@echo "... shared_parameters.s"
 	@echo "... static_model.o"
 	@echo "... static_model.i"
 	@echo "... static_model.s"

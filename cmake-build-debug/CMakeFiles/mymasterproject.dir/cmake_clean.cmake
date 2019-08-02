@@ -1,6 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o"
   "CMakeFiles/mymasterproject.dir/static_model.c.o"
+  "CMakeFiles/mymasterproject.dir/shared_parameters.cpp.o"
   "mymasterproject.pdb"
   "mymasterproject"
 )

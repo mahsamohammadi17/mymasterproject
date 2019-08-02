@@ -15,6 +15,7 @@ set(CMAKE_C_TARGET_INCLUDE_PATH
   )
 set(CMAKE_DEPENDS_CHECK_CXX
   "/home/d/mymasterproject/mymasterproject.cpp" "/home/d/mymasterproject/cmake-build-debug/CMakeFiles/mymasterproject.dir/mymasterproject.cpp.o"
+  "/home/d/mymasterproject/shared_parameters.cpp" "/home/d/mymasterproject/cmake-build-debug/CMakeFiles/mymasterproject.dir/shared_parameters.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

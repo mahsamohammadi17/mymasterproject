@@ -7283,17 +7283,19 @@ extern GSEControlBlock iedModel_CTRL_LLN0_gse0;
 extern GSEControlBlock iedModel_PROT_LLN0_gse0;
 extern GSEControlBlock iedModel_MEAS_LLN0_gse0;
 uint8_t addr1mac[]={0x01, 0x0c, 0xcd, 0x01, 0x00, 0x01};
-PhyComAddress addr1={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,0x1012, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x01}};
-PhyComAddress addr2={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,0x1022, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x01}};
-PhyComAddress addr3={CONFIG_GOOSE_DEFAULT_PRIORITY,CONFIG_GOOSE_DEFAULT_VLAN_ID,0x1032, {0x01, 0x0c, 0xcd, 0x01, 0x00, 0x01}};
+
+#include "shared_parameters.cpp"
+
 /*addr1.vlanPriority=CONFIG_GOOSE_DEFAULT_PRIORITY;
 addr1.vlanId=CONFIG_GOOSE_DEFAULT_VLAN_ID;
 addr1.destAddress=CONFIG_GOOSE_DEFAULT_DST_ADDRESS;
 addr1.appId=0x1002;*/
-
-GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "LIED20/CTRL/LLN0/Status", "Status", 10001, false, &addr1, 50, 5000, &iedModel_PROT_LLN0_gse0};
-GSEControlBlock iedModel_PROT_LLN0_gse0 = {&iedModel_PROT_LLN0, "Alarm", "LIED20/PROT/LLN0/Alarm", "Alarm", 10002, false, &addr2, 50, 5000, &iedModel_MEAS_LLN0_gse0};
-GSEControlBlock iedModel_MEAS_LLN0_gse0 = {&iedModel_MEAS_LLN0, "Meas", "LIED20/MEAS/LLN0/Meas", "Meas", 10003, false, &addr3, 50, 5000, NULL};
+extern PhyComAddress addr1;
+extern PhyComAddress addr2;
+extern PhyComAddress addr3;
+GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "LIED20/CTRL/LLN0/Status", "Status", 10002, false, &addr1, 100, 500, &iedModel_PROT_LLN0_gse0};
+GSEControlBlock iedModel_PROT_LLN0_gse0 = {&iedModel_PROT_LLN0, "Alarm", "LIED20/PROT/LLN0/Alarm", "Alarm", 10002, false, &addr2, 100, 500, &iedModel_MEAS_LLN0_gse0};
+GSEControlBlock iedModel_MEAS_LLN0_gse0 = {&iedModel_MEAS_LLN0, "Meas", "LIED20/MEAS/LLN0/Meas", "Meas", 10002, false, &addr3, 100, 500, NULL};
 
 extern SettingGroupControlBlock iedModel_PROT_LLN0_sgcb;
 

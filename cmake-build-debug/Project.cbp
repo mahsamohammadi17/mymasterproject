@@ -89,6 +89,9 @@
 		<Unit filename="/home/d/mymasterproject/mymasterproject.cpp">
 			<Option target="mymasterproject"/>
 		</Unit>
+		<Unit filename="/home/d/mymasterproject/shared_parameters.cpp">
+			<Option target="mymasterproject"/>
+		</Unit>
 		<Unit filename="/home/d/mymasterproject/static_model.c">
 			<Option target="mymasterproject"/>
 		</Unit>
