@@ -716,7 +716,7 @@ void* goosepublisherMAIN(void *arg){
     while (running) {
         IedServer_lockDataModel(iedServer);
 
-        monitor_other_IEDs_for_status(nullptr);
+  //      monitor_other_IEDs_for_status(nullptr);
         update_MEAS_from_SV(nullptr);
 
         IedServer_unlockDataModel(iedServer);
