@@ -131,7 +131,8 @@ int busbar_protection(void* arg){
 float thresholdA=10.5*sqrt(2);
 int breaker_failure_protection(void* arg){
     if ( (IA>thresholdA || IB >thresholdA || IC > thresholdA )&& (gostatus.XCBR_Pos==1 || goalarm.PIOC_Op_general!=true )){
-        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
+        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,3);
+        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_PTRC_EEHealth_stVal,3);
                give_alarm_overcurrent(nullptr); //?
         cout<<"***\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t******\tbreaker_failure_protection\t***"<<endl;
         return 1;
@@ -156,7 +157,9 @@ int check_status_for_XCBR_closed(void* arg){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,false);
         if(IedServer_getInt32AttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_q)!=0)IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0);
-        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)==0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker
+        if( IedServer_getInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal)==0)IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,1);//XCBR circuit breaker 0 open 1 closed
+        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,1);
+        IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_PTRC_EEHealth_stVal,1);
         cout<<"##****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t######****\tXCBR_closed\t####"<<endl;
         return 1;
     }
@@ -561,7 +564,7 @@ int give_alarm_overcurrent(void* arg){
         IedServer_updateBooleanAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_general,true);
         IedServer_updateQuality(iedServer, IEDMODEL_PROT_PIOC_Op_q,0b1010000000000);//reserved: overflow
         IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_PROT_PIOC_Op_t,Hal_getTimeInMs() );
-        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
+        IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker 0 open 1 closed
     //    IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal,1);//XSWI circuit switch
         cout<<"***\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t******\tOVER CURRENT\t***"<<endl;
         return 1;
