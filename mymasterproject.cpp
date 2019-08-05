@@ -470,11 +470,20 @@ static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscr
      * data block of the SV message before accessing the data.
      */
     if (SVSubscriber_ASDU_getDataSize(asdu) >= 4) {//8
-       if(appid==0x4001)     { /*printf(" 0x4001  DATA[0]: %f\n",*/ datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
-       else if(appid==0x4002){ /*printf(" 0x4002  DATA[0]: %f\n",*/ datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n", */datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
-       else if(appid==0x4003){ /*printf(" 0x4003  DATA[0]: %f\n",*/ datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;/*printf("   DATA[1]: %f\n",*/ datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4)/*)*/;}
-       else if(appid==5001)  { /*printf(" 5001  DATA[0]: %f\n",*/datasv[6]=SVSubscriber_ASDU_getFLOAT32(asdu, 0)/*)*/;}
-   }
+#define PRINT_SV
+#ifndef PRINT_SV
+       if(appid==0x4001)     { datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0); datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4);}
+       else if(appid==0x4002){  datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0);datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4);}
+       else if(appid==0x4003){  datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0); datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4);}
+       else if(appid==5001)  { datasv[6]=SVSubscriber_ASDU_getFLOAT32(asdu, 0);}
+#else
+        if(appid==0x4001)     { printf(" 0x4001  DATA[0]: %f\n", datasv[0]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[1]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+        else if(appid==0x4002){ printf(" 0x4002  DATA[0]: %f\n", datasv[2]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[3]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+        else if(appid==0x4003){ printf(" 0x4003  DATA[0]: %f\n", datasv[4]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));printf("   DATA[1]: %f\n", datasv[5]=SVSubscriber_ASDU_getFLOAT32(asdu, 4));}
+      //  else if(appid==5001)  { printf(" 5001  DATA[0]: %f\n",datasv[6]=SVSubscriber_ASDU_getFLOAT32(asdu, 0));}
+        else if(appid==5001)  { datasv[6]=SVSubscriber_ASDU_getFLOAT32(asdu, 0);}
+#endif
+    }
 }
 
 void* subscribeSV(void *arg)
