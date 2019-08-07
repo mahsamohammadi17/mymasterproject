@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-
-for i in {5161..5251}
+#161 253
+for i in {5100..5250}
 do
-    sudo ./cmake-build-debug/mymasterproject lo $i &
+    sudo ./cmake-build-debug/mymasterproject enp0s8 $i &
 done
