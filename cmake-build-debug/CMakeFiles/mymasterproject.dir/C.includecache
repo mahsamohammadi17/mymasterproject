@@ -6,3 +6,25 @@
 
 #IncludeRegexTransform: 
 
+/home/d/mymasterproject/shared_parameters.cpp
+
+/home/d/mymasterproject/static_model.c
+iec61850_dynamic_model.h
+-
+static_model.h
+/home/d/mymasterproject/static_model.h
+iec61850_common.h
+/home/d/mymasterproject/iec61850_common.h
+stack_config.h
+/home/d/mymasterproject/stack_config.h
+goose_publisher.h
+/home/d/mymasterproject/goose_publisher.h
+shared_parameters.cpp
+/home/d/mymasterproject/shared_parameters.cpp
+
+/home/d/mymasterproject/static_model.h
+stdlib.h
+-
+iec61850_model.h
+/home/d/mymasterproject/iec61850_model.h
+

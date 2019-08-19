@@ -7293,7 +7293,7 @@ addr1.appId=0x1002;*/
 extern PhyComAddress addr1;
 extern PhyComAddress addr2;
 extern PhyComAddress addr3;
-GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "LIED20/CTRL/LLN0/Status", "Status", 10002, false, &addr1, 100, 5000, &iedModel_PROT_LLN0_gse0};
+GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "LIED20/CTRL/LLN0/Status", "Status", 10002, false, &addr1, 100,5000, &iedModel_PROT_LLN0_gse0};
 GSEControlBlock iedModel_PROT_LLN0_gse0 = {&iedModel_PROT_LLN0, "Alarm", "LIED20/PROT/LLN0/Alarm", "Alarm", 10002, false, &addr2, 100, 5000, &iedModel_MEAS_LLN0_gse0};
 GSEControlBlock iedModel_MEAS_LLN0_gse0 = {&iedModel_MEAS_LLN0, "Meas", "LIED20/MEAS/LLN0/Meas", "Meas", 10002, false, &addr3, 100, 5000, NULL};
 
