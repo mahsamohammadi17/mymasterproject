@@ -142,7 +142,7 @@ int breaker_failure_protection(void* arg){
 
 int underfrequency_load_shedding(void* arg){
     if (datasv[6]<10){
-        Thread_sleep(3000);
+        Thread_sleep(500);
         if (datasv[6]<10){
             IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal,0);//XCBR circuit breaker
             cout<<"***\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t******\tunderfrequency_load_shedding\t***"<<endl;
@@ -366,7 +366,7 @@ void* subscribeGOOSEfromrealIEDalarm(void *arg){
     GooseReceiver_start(receiver2);//GooseReceiver_start(receiver3);
     signal(SIGINT, sigint_handler);
     while (running) {
-        Thread_sleep(3);
+        Thread_sleep(300);
         if (mmsvaluealarm!=NULL){
             try
             {
@@ -414,7 +414,7 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
     GooseReceiver_start(receiver3);
     signal(SIGINT, sigint_handler);
     while (running) {
-        Thread_sleep(3);
+        Thread_sleep(300);
         if (mmsvaluemeas!=NULL){
             try
             {
@@ -511,7 +511,7 @@ void* subscribeSV(void *arg)
     SVReceiver_start(receiver1);  SVReceiver_start(receiver2);  SVReceiver_start(receiver3); SVReceiver_start(receiverhz);
     signal(SIGINT, sigint_handler);
     while (running)
-        Thread_sleep(5);
+        Thread_sleep(300);
     /* Stop listening to SV messages */
     SVReceiver_stop(receiver1);SVReceiver_stop(receiver2);SVReceiver_stop(receiver3);SVReceiver_stop(receiverhz);
     /* Cleanup and free resources */
@@ -732,7 +732,7 @@ void* goosepublisherMAIN(void *arg){
         update_MEAS_from_SV(nullptr);
 
         IedServer_unlockDataModel(iedServer);
-        Thread_sleep(3);
+        Thread_sleep(300);
     }
     /* stop MMS server - close TCP server socket and all client sockets */
     IedServer_stop(iedServer);
@@ -749,7 +749,7 @@ void* run1(void* arg){
                 Thread_sleep(2000);
                 if (breaker_failure_protection(nullptr) == 1)
                     while (1) {
-                        Thread_sleep(2);
+                        Thread_sleep(500);
                         if (check_status_for_XCBR_closed(nullptr) == 1)
                             break;
                     }

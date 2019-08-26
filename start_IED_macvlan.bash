@@ -1,7 +1,7 @@
 #!/bin/bash
 iface="enp0s3";
 
-for i in {5100..5250}
+for i in {5100..5300}
 do
     j=$(( $i-5100+1 ));
     mac=$(printf "00:09:8E:00:00:%02X\n" $j);
