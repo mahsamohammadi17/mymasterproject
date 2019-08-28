@@ -601,7 +601,7 @@ int give_alarm_overcurrent(void* arg){
   return 0;
 }
 
-void * copy_GOOSEfrom_real_IED(){
+void * copy_GOOSEfrom_real_IED(){  // NOT used
 #define update_GOOSE_via_realIED 0
 #if     update_GOOSE_via_realIED ==1
 copy_GOOSEfrom_real_IED_begin:
