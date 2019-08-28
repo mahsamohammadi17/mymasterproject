@@ -166,7 +166,7 @@ int check_status_for_XCBR_closed(void* arg){
     return 0;
 }
 
-void monitor_other_IEDs_for_status(void* arg){
+void monitor_other_IEDs_for_status(void* arg){  // not used
     IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XCBR_Pos_stVal, gostatus.XCBR_Pos);
    // IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_XSWI_Pos_stVal, gostatus.XSWI_Pos);
     //IedServer_updateInt32AttributeValue(iedServer, IEDMODEL_CTRL_PTRC_EEHealth_stVal,gostatus.PTRC_EEHealth);
@@ -349,7 +349,7 @@ void* subscribeGOOSEfromrealIED(void *arg)//subscribeGOOSEfromrealIEDstatus
     GooseReceiver_destroy(receiver);GooseReceiver_destroy(receiver2);GooseReceiver_destroy(receiver3);
 
 }
-
+/*
 void* subscribeGOOSEfromrealIEDalarm(void *arg){
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
@@ -397,8 +397,8 @@ void* subscribeGOOSEfromrealIEDalarm(void *arg){
     GooseReceiver_stop(receiver2);//GooseReceiver_stop(receiver3);
     GooseReceiver_destroy(receiver2);//GooseReceiver_destroy(receiver3);
 
-};
-
+};*/
+/*
 void* subscribeGOOSEfromrealIEDmeas(void *arg){
     struct fun_para_g para;
     para=*(struct fun_para_g *)arg;
@@ -446,7 +446,7 @@ void* subscribeGOOSEfromrealIEDmeas(void *arg){
     GooseReceiver_stop(receiver3);
     GooseReceiver_destroy(receiver3);
 
-};
+};*/
 
 /* Callback handler for received SV messages */
 static void svUpdateListener (SVSubscriber subscriber, void* parameter, SVSubscriber_ASDU asdu)
@@ -518,7 +518,8 @@ void* subscribeSV(void *arg)
     SVReceiver_destroy(receiver1);SVReceiver_destroy(receiver2);SVReceiver_destroy(receiver3);SVReceiver_destroy(receiverhz);
 }
 
-void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
+/*
+void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)  //not used
 {
     uint64_t timestamp = Hal_getTimeInMs();
 /*    if (parameter ==  IEDMODEL_CTRL_LLN0_Beh ) {//(parameter == IEDMODEL_CTRL_LLN0) {
@@ -559,7 +560,7 @@ void controlHandlerForBinaryOutput(void* parameter, MmsValue* value)
         IedServer_updateUTCTimeAttributeValue(iedServer, IEDMODEL_CTRL_SPDOnsGGIO4_SPCSO_t, timestamp);
         IedServer_updateAttributeValue(iedServer, IEDMODEL_CTRL_SPDOnsGGIO4_SPCSO_stVal, value);
     }*/
-}
+//}
 
 /*void logic_inside(void* arg){
     pass;
