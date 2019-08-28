@@ -762,7 +762,7 @@ void* run2(void* arg){
         if (breaker_failure_protection(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
 }*/
 
-void* run3(void* arg){
+void* run3(void* arg){  //not used now
     while(running)
         if (underfrequency_load_shedding(nullptr) == 1)while (1) { if (check_status_for_XCBR_closed(nullptr) == 1)break; }
 }
