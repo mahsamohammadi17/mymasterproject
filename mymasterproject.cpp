@@ -807,7 +807,7 @@ int main(int argc, char** argv) {
     pthread_join(thread[2], NULL ) ;
     pthread_join(thread[3], NULL ) ;
 //    pthread_join(thread[4], NULL ) ;
-    pthread_join(thread[5], NULL ) ;
+  //  pthread_join(thread[5], NULL ) ;
 //  subscribeGOOSEfromrealIED(&parag[1]);
 
 
