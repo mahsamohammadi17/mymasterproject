@@ -3,6 +3,8 @@ my master project
 
 test in Ubuntu 18.04
 
+The time interval can be changed in static_model.c line 7296-7298 iedModel_CTRL_LLN0_gse0, iedModel_***_LLN0_gse0, ...;
+
 library: **libiec61850** (1.3.3)       
 https://libiec61850.com/libiec61850/
 
